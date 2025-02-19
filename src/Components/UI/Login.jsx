@@ -3,11 +3,13 @@ import { Mail, Lock } from "lucide-react";
 import Link from "next/link";
 import { ApiRequest } from "@/Components/Util/apiRequest";
 import { encryptData } from "@/Components/Util/crypto";
+import { useRouter } from "next/router";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ export function Login() {
 
       const encryptedToken = encryptData(data.token, process.env.NEXT_PUBLIC_ENCRYPTION_KEY);
       localStorage.setItem("authToken", encryptedToken);
-
+      router.push("/");
       console.log("Login successful:", data);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");

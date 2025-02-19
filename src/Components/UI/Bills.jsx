@@ -1,50 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Search, FileDown, Eye, Pencil, Trash2, Filter, Calendar, ChevronDown } from "lucide-react";
 import { cn } from "./../Util/utils";
 import { useRouter } from "next/router";
-
-const mockBills = [
-  {
-    id: "INV-2024-001",
-    customer: "Tech Solutions Inc",
-    amount: "$2,450.00",
-    paymentType: "Credit Card",
-    date: "2024-03-15",
-    status: "paid",
-  },
-  {
-    id: "INV-2024-002",
-    customer: "Global Innovations",
-    amount: "$1,850.00",
-    paymentType: "Bank Transfer",
-    date: "2024-03-14",
-    status: "pending",
-  },
-  {
-    id: "INV-2024-003",
-    customer: "Digital Dynamics",
-    amount: "$3,200.00",
-    paymentType: "PayPal",
-    date: "2024-03-12",
-    status: "overdue",
-  },
-  {
-    id: "INV-2024-004",
-    customer: "Creative Solutions",
-    amount: "$1,750.00",
-    paymentType: "Credit Card",
-    date: "2024-03-10",
-    status: "paid",
-  },
-  {
-    id: "INV-2024-005",
-    customer: "Future Systems",
-    amount: "$4,200.00",
-    paymentType: "Bank Transfer",
-    date: "2024-03-08",
-    status: "pending",
-  },
-];
+import { ApiRequest } from "../Util/apiRequest";
 
 const StatusBadge = ({ status }) => {
   const styles =
@@ -53,7 +11,6 @@ const StatusBadge = ({ status }) => {
       pending: "bg-yellow-100 text-yellow-700",
       overdue: "bg-red-100 text-red-700",
     }[status] || "";
-
   return (
     <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", styles)}>
       {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -73,8 +30,30 @@ const FilterDropdown = ({ label, options }) => {
 };
 
 export function Bills() {
+  const [bills, setBills] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        const res = await ApiRequest("/api/bills");
+        setBills(res.data);
+      } catch (err) {
+        setError(err.message || "Failed to load bills");
+      }
+    };
+    fetchBills();
+  }, []);
+
+  const filteredBills = bills.filter((bill) => {
+    const term = searchTerm?.toLowerCase();
+    return (
+      bill.billNumber?.toLowerCase().includes(term) ||
+      (bill.customer && bill.customer.name?.toLowerCase().includes(term))
+    );
+  });
 
   const handleExportCSV = () => {
     console.log("Exporting as CSV...");
@@ -90,7 +69,6 @@ export function Bills() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Bills</h1>
@@ -104,8 +82,6 @@ export function Bills() {
           New Bill
         </button>
       </div>
-
-      {/* Filters and Search */}
       <div className="bg-white rounded-xl p-4 shadow-sm">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div className="flex items-center space-x-3">
@@ -146,24 +122,20 @@ export function Bills() {
           </div>
         </div>
       </div>
-
-      {/* Bills Table */}
+      {error && <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Invoice Number
+                  Bill Number
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Customer
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -175,37 +147,51 @@ export function Bills() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {mockBills.map((bill) => (
-                <tr key={bill.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{bill.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bill.customer}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{bill.amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bill.paymentType}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={bill.status} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bill.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => router.push(`bill/${bill.id}`)}
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button
-                        onClick={() => router.push(`bill/${bill.id}/edit`)}
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button onClick={() => handleDelete(bill.id)} className="text-gray-600 hover:text-red-600">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+              {filteredBills.length > 0 ? (
+                filteredBills.map((bill) => (
+                  <tr key={bill.billNumber} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{bill.billNumber}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {bill.customer?.name || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {bill.total ? `$${Number(bill.total).toFixed(2)}` : "$0.00"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={bill.status || "paid"} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bill.metaData?.date || ""}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => router.push(`/bill/${bill._id}`)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button
+                          onClick={() => router.push(`/bill/${bill._id}/edit`)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          <Pencil size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(bill.billNumber)}
+                          className="text-gray-600 hover:text-red-600"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                    No bills found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

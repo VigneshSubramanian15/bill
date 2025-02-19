@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Download, Printer, Palette } from "lucide-react";
-// import { cn } from "../lib/utils";
+import { useRouter } from "next/router";
+import { ApiRequest } from "../Util/apiRequest";
 
 const defaultCompanyInfo = {
   name: "Your Company Name",
@@ -12,31 +13,45 @@ const defaultCompanyInfo = {
   website: "www.company.com",
 };
 
-export function PrintBill({ bill }) {
+export function PrintBill() {
+  const router = useRouter();
   const [accentColor, setAccentColor] = useState("#16a34a");
   const [showCustomization, setShowCustomization] = useState(false);
   const [companyInfo, setCompanyInfo] = useState(defaultCompanyInfo);
+  const [billData, setBillData] = useState(null);
+  const [error, setError] = useState("");
 
-  const billData = bill || {
-    number: "INV-2024-001",
-    date: "2024-03-20",
-    customer: {
-      name: "Tech Solutions Inc",
-      id: "CUST001",
-      address: "456 Tech Avenue, Innovation City, ST 54321",
-    },
-    items: [
-      { name: "Web Development Services", quantity: 1, rate: 2000, total: 2000 },
-      { name: "UI/UX Design", quantity: 2, rate: 800, total: 1600 },
-      { name: "Server Maintenance", quantity: 1, rate: 500, total: 500 },
-    ],
-    subtotal: 4100,
-    tax: 10,
-    taxAmount: 410,
-    discount: 5,
-    discountAmount: 205,
-    total: 4305,
-  };
+  useEffect(() => {
+    if (router?.query?.id) {
+      console.log({ id: router.query.id });
+      ApiRequest(`/api/bills/${router.query.id}`, "GET")
+        .then((res) => {
+          if (res.success) {
+            setBillData(res.data);
+          } else {
+            setError("Failed to load bill data");
+          }
+        })
+        .catch((err) => setError(err.message || "Failed to load bill data"));
+    }
+  }, [router?.query?.id]);
+
+  if (error) {
+    return <div className="p-4 text-red-600">{error}</div>;
+  }
+
+  if (!billData) {
+    return <div className="p-4">Loading bill data...</div>;
+  }
+
+  const computedItems = billData.items.map((item) => ({
+    ...item,
+    total: item.itemQty * item.itemPrice,
+  }));
+  const subtotal = computedItems.reduce((sum, item) => sum + item.total, 0);
+  const taxAmount = (subtotal * (Number(billData.tax) || 0)) / 100;
+  const discountAmount = (subtotal * (Number(billData.discount) || 0)) / 100;
+  const grandTotal = subtotal + taxAmount - discountAmount;
 
   const handlePrint = () => {
     window.print();
@@ -140,8 +155,8 @@ export function PrintBill({ bill }) {
             <h1 className="text-4xl font-bold mb-4" style={{ color: accentColor }}>
               INVOICE
             </h1>
-            <p className="text-gray-600">Bill #{billData.number}</p>
-            <p className="text-gray-600">Date: {billData.date}</p>
+            <p className="text-gray-600">Bill #{billData.billNumber}</p>
+            <p className="text-gray-600">Date: {billData.metaData?.date}</p>
           </div>
         </div>
 
@@ -151,8 +166,8 @@ export function PrintBill({ bill }) {
           </h3>
           <div className="border-l-4 pl-4" style={{ borderColor: accentColor }}>
             <p className="font-semibold text-gray-600">{billData.customer.name}</p>
-            <p className="text-gray-600">Customer ID: {billData.customer.id}</p>
-            <p className="text-gray-600">{billData.customer.address}</p>
+            <p className="text-gray-600">Customer Number: {billData.customer.number}</p>
+            <p className="text-gray-600">{billData.customer.address || ""}</p>
           </div>
         </div>
 
@@ -166,11 +181,11 @@ export function PrintBill({ bill }) {
             </tr>
           </thead>
           <tbody className="border-t border-b">
-            {billData.items.map((item, index) => (
+            {computedItems.map((item, index) => (
               <tr key={index} className="border-b text-gray-600 last:border-b-0">
-                <td className="py-3">{item.name}</td>
-                <td className="py-3 text-right">{item.quantity}</td>
-                <td className="py-3 text-right">${item.rate.toFixed(2)}</td>
+                <td className="py-3">{item.itemName}</td>
+                <td className="py-3 text-right">{item.itemQty}</td>
+                <td className="py-3 text-right">${Number(item.itemPrice).toFixed(2)}</td>
                 <td className="py-3 text-right">${item.total.toFixed(2)}</td>
               </tr>
             ))}
@@ -180,19 +195,19 @@ export function PrintBill({ bill }) {
         <div className="w-1/2 ml-auto space-y-2">
           <div className="flex justify-between">
             <span className="text-gray-600">Subtotal:</span>
-            <span className="font-medium text-gray-600">${billData.subtotal.toFixed(2)}</span>
+            <span className="font-medium text-gray-600">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Tax ({billData.tax}%):</span>
-            <span className="font-medium text-gray-600">${billData.taxAmount.toFixed(2)}</span>
+            <span className="font-medium text-gray-600">${taxAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Discount ({billData.discount}%):</span>
-            <span className="font-medium text-gray-600">-${billData.discountAmount.toFixed(2)}</span>
+            <span className="font-medium text-gray-600">-${discountAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between pt-2 text-gray-600 border-t font-bold text-lg">
             <span>Total:</span>
-            <span style={{ color: accentColor }}>${billData.total.toFixed(2)}</span>
+            <span style={{ color: accentColor }}>${grandTotal.toFixed(2)}</span>
           </div>
         </div>
 
