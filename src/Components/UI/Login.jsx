@@ -1,8 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import Link from "next/link";
+import { ApiRequest } from "@/Components/Util/apiRequest";
+import { encryptData } from "@/Components/Util/crypto";
 
 export function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const encryptedEmail = encryptData(email);
+      const encryptedPassword = encryptData(password);
+
+      const data = await ApiRequest("/api/auth/login", "POST", {
+        userId: encryptedEmail,
+        password: encryptedPassword,
+      });
+
+      const encryptedToken = encryptData(data.token, process.env.NEXT_PUBLIC_ENCRYPTION_KEY);
+      localStorage.setItem("authToken", encryptedToken);
+
+      console.log("Login successful:", data);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -12,7 +40,7 @@ export function Login() {
             <p className="text-gray-600">Please enter your details to sign in</p>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
               <div className="relative">
@@ -21,8 +49,11 @@ export function Login() {
                 </div>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter your email"
+                  required
                 />
               </div>
             </div>
@@ -35,11 +66,16 @@ export function Login() {
                 </div>
                 <input
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter your password"
+                  required
                 />
               </div>
             </div>
+
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">
