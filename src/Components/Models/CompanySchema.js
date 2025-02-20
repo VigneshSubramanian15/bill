@@ -1,4 +1,3 @@
-// models/CompanySchema.js
 import mongoose from 'mongoose';
 
 const CompanySchema = new mongoose.Schema(
@@ -10,7 +9,19 @@ const CompanySchema = new mongoose.Schema(
         },
         address: {
             type: [String],
-            required: [true, 'Address is required'],
+            trim: true,
+        },
+        email: {
+            type: String,
+            trim: true,
+        },
+        website: {
+            type: String,
+            trim: true,
+        },
+        phoneNumber: {
+            type: String,
+            required: [true, 'Phone Number name is required'],
             trim: true,
         },
         logo: {

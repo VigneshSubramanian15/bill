@@ -8,6 +8,7 @@ const customerValidationSchema = Joi.object({
     name: Joi.string().required().messages({ 'string.empty': 'Customer name is required' }),
     number: Joi.string().required().messages({ 'string.empty': 'Customer number is required' }),
     email: Joi.string().email().required().messages({ 'string.email': 'Invalid email format', 'string.empty': 'Customer email is required' }),
+    address: Joi.string().email().messages({ 'string.empty': 'Address is required' }),
 });
 
 export default async function handler(req, res) {
@@ -17,20 +18,19 @@ export default async function handler(req, res) {
     const { companyId, userId } = getJWTTokenData(req);
 
     switch (method) {
-        case 'GET': // Fetch Customers with Pagination
+        case 'GET':
             try {
                 const { page = 1, limit = 10, search = "" } = req.query;
                 const pageNum = parseInt(page, 10);
                 const limitNum = parseInt(limit, 10);
                 const skip = (pageNum - 1) * limitNum;
 
-                // Search Query: Match phone number or email (case-insensitive)
                 const searchQuery = search
                     ? {
                         companyId,
                         $or: [
-                            { number: { $regex: search, $options: "i" } }, // Match phone number
-                            { email: { $regex: search, $options: "i" } }   // Match email
+                            { number: { $regex: search, $options: "i" } },
+                            { email: { $regex: search, $options: "i" } }
                         ]
                     }
                     : { companyId };
