@@ -24,11 +24,8 @@ export function CreateEditBill() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    console.log({ isCreateMode });
     if (isCreateMode) {
       const billNumberFromQuery = router.query.id;
-      console.log({ billNumberFromQuery });
-      setBillNumber(billNumberFromQuery);
       ApiRequest(`/api/bills/${billNumberFromQuery}`)
         .then((data) => {
           if (data.success) {
@@ -107,6 +104,7 @@ export function CreateEditBill() {
   const grandTotal = subtotal + taxAmount - discountAmount;
 
   const createBill = async (newCustomerId) => {
+    console.log({ billNumber });
     const billData = {
       customer: {
         id: customerId || newCustomerId,
@@ -114,7 +112,7 @@ export function CreateEditBill() {
         name: customerName,
         email: customerEmail,
       },
-      billNumber: billNumber,
+      billNumber,
       items: lineItems.map((item) => ({
         itemName: item.name,
         itemQty: item.quantity,
@@ -160,9 +158,9 @@ export function CreateEditBill() {
     <div className="space-y-6 mx-auto">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{isCreateMode ? "Create New Bill" : "Edit Bill"}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{!isCreateMode ? "Create New Bill" : "Edit Bill"}</h1>
           <p className="text-gray-600">
-            {isCreateMode ? "Fill in the details to create a new bill" : "Edit the bill details"}
+            {!isCreateMode ? "Fill in the details to create a new bill" : "Edit the bill details"}
           </p>
         </div>
       </div>
@@ -174,6 +172,8 @@ export function CreateEditBill() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Bill Number</label>
             <input
               type="text"
+              disabled
+              onChange={({ target: { values } }) => setBillNumber(values)}
               value={billNumber}
               className="bg-gray-50 w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-600"
             />
@@ -191,8 +191,8 @@ export function CreateEditBill() {
         <div className="relative">
           <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone Number</label>
           <input
-            type="text"
-            value={customerInfo}
+            type="number"
+            value={customerInfo || customerPhone}
             onChange={(e) => {
               setCustomerId("");
               setCustomerInfo(e.target.value);

@@ -29,10 +29,33 @@ const FilterDropdown = ({ label, options }) => {
   );
 };
 
+const DeleteConfirmationPopup = ({ bill, onClose, onDelete }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="bg-white rounded-xl max-w-md w-full p-6">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Delete Customer?</h2>
+      <p className="text-gray-600 mb-6">Are you sure you want to delete {bill.name}? This action cannot be undone.</p>
+      <div className="flex justify-end space-x-3">
+        <button onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700">
+          Cancel
+        </button>
+        <button
+          onClick={() => onDelete(bill._id)}
+          style={{ backgroundColor: "#dc2626" }}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 export function Bills() {
   const [bills, setBills] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
+  const [deleteBill, setDeleteBill] = useState(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -63,8 +86,8 @@ export function Bills() {
     console.log("Exporting as PDF...");
   };
 
-  const handleDelete = (id) => {
-    console.log("Deleting bill:", id);
+  const handleDelete = async (id) => {
+    await ApiRequest(`${"/api/bills"}/${id}`, "DELETE");
   };
 
   return (
@@ -175,10 +198,7 @@ export function Bills() {
                         >
                           <Pencil size={18} />
                         </button>
-                        <button
-                          onClick={() => handleDelete(bill.billNumber)}
-                          className="text-gray-600 hover:text-red-600"
-                        >
+                        <button onClick={() => setDeleteBill(bill)} className="text-gray-600 hover:text-red-600">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -196,6 +216,9 @@ export function Bills() {
           </table>
         </div>
       </div>
+      {deleteBill && (
+        <DeleteConfirmationPopup bill={deleteBill} onClose={() => setDeleteBill(null)} onDelete={handleDelete} />
+      )}
     </div>
   );
 }

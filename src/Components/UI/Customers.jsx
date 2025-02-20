@@ -1,35 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Plus, Search, Edit, Trash2, ChevronDown, ChevronRight, Mail, Phone, DollarSign, Calendar } from "lucide-react";
 import { cn } from "./../Util/utils";
+import { ApiRequest } from "../Util/apiRequest";
 
-const mockCustomers = [
-  {
-    id: "CUST001",
-    name: "Tech Solutions Inc",
-    email: "contact@techsolutions.com",
-    phone: "+1 (555) 123-4567",
-    totalSpent: 24500,
-    lastInvoice: "2024-03-15",
-    status: "active",
-    paymentHistory: [
-      { id: "INV-2024-001", date: "2024-03-15", amount: 2450, status: "paid" },
-      { id: "INV-2024-002", date: "2024-02-28", amount: 1850, status: "paid" },
-      { id: "INV-2024-003", date: "2024-02-15", amount: 3200, status: "pending" },
-    ],
-  },
-  // ... other customers
-];
-
-const CustomerEditPopup = ({ customer, onClose, onSave }) => {
+const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
   const [formData, setFormData] = useState({
     name: customer.name,
     email: customer.email,
-    phone: customer.phone,
+    number: customer.number,
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(customer.id, formData);
+    ApiRequest("/api/customers/" + customer._id, "PUT", formData).then(() => refetchCustomers());
     onClose();
   };
 
@@ -49,8 +32,9 @@ const CustomerEditPopup = ({ customer, onClose, onSave }) => {
             <input
               type="text"
               value={formData.name}
+              style={{ color: "black" }}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
           </div>
@@ -60,8 +44,9 @@ const CustomerEditPopup = ({ customer, onClose, onSave }) => {
             <input
               type="email"
               value={formData.email}
+              style={{ color: "black" }}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
           </div>
@@ -70,9 +55,10 @@ const CustomerEditPopup = ({ customer, onClose, onSave }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
             <input
               type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              value={formData.number}
+              style={{ color: "black" }}
+              onChange={(e) => setFormData({ ...formData, number: e.target.value })}
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
           </div>
@@ -107,7 +93,7 @@ const StatusBadge = ({ status }) => {
 
   return (
     <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", styles)}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status?.charAt(0).toUpperCase() + status?.slice(1)}
     </span>
   );
 };
@@ -158,7 +144,7 @@ const CustomerDetails = ({ customer, onClose }) => {
                 <DollarSign size={16} className="mr-1" />
                 Total Spent
               </div>
-              <p className="text-2xl font-bold text-gray-900">${customer.totalSpent.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">${customer.totalSpent?.toLocaleString()}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center text-gray-600 mb-1">
@@ -189,7 +175,7 @@ const CustomerDetails = ({ customer, onClose }) => {
                         {new Date(payment.date).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${payment.amount.toLocaleString()}
+                        ${payment.amount?.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={payment.status} />
@@ -216,17 +202,49 @@ const CustomerDetails = ({ customer, onClose }) => {
   );
 };
 
+const DeleteConfirmationPopup = ({ customer, onClose, onDelete }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="bg-white rounded-xl max-w-md w-full p-6">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Delete Customer?</h2>
+      <p className="text-gray-600 mb-6">
+        Are you sure you want to delete {customer.name}? This action cannot be undone.
+      </p>
+      <div className="flex justify-end space-x-3">
+        <button onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700">
+          Cancel
+        </button>
+        <button
+          onClick={() => onDelete(customer._id)}
+          style={{ backgroundColor: "#dc2626" }}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 export function Customers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
-  const [customers, setCustomers] = useState(mockCustomers);
+  const [customers, setCustomers] = useState([]);
+  const [deletingCustomer, setDeletingCustomer] = useState(null);
 
   const handleEditCustomer = (id, data) => {
     setCustomers((prevCustomers) =>
       prevCustomers.map((customer) => (customer.id === id ? { ...customer, ...data } : customer))
     );
+  };
+
+  const handleDeleteCustomer = async (id) => {
+    const response = await ApiRequest(`${"/api/customers"}/${id}`, "DELETE");
+    if (response.success) {
+      setCustomers((prev) => prev.filter((c) => c._id !== id));
+    }
+    setDeletingCustomer(null);
   };
 
   const filteredCustomers = customers.filter((customer) => {
@@ -239,6 +257,11 @@ export function Customers() {
 
     return matchesSearch && matchesStatus;
   });
+  const FetchCustomers = () => ApiRequest("/api/customers").then((d) => setCustomers(d.data));
+
+  useEffect(() => {
+    FetchCustomers();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -288,13 +311,7 @@ export function Customers() {
                   Contact
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Spent
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Invoice
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  Phone Number
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -306,7 +323,7 @@ export function Customers() {
                 <tr
                   key={customer.id}
                   className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => setSelectedCustomer(customer)}
+                  // onClick={() => setSelectedCustomer(customer)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -321,13 +338,7 @@ export function Customers() {
                     <div className="text-sm text-gray-500">{customer.phone}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">${customer.totalSpent.toLocaleString()}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {new Date(customer.lastInvoice).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={customer.status} />
+                    <div className="text-sm font-medium text-gray-900">{customer.number}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
@@ -341,10 +352,7 @@ export function Customers() {
                         <Edit size={18} />
                       </button>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log("Delete customer:", customer.id);
-                        }}
+                        onClick={() => setDeletingCustomer(customer)}
                         className="text-gray-600 hover:text-red-600"
                       >
                         <Trash2 size={18} />
@@ -371,9 +379,18 @@ export function Customers() {
 
       {editingCustomer && (
         <CustomerEditPopup
+          refetchCustomers={FetchCustomers}
           customer={editingCustomer}
           onClose={() => setEditingCustomer(null)}
           onSave={handleEditCustomer}
+        />
+      )}
+
+      {deletingCustomer && (
+        <DeleteConfirmationPopup
+          customer={deletingCustomer}
+          onClose={() => setDeletingCustomer(null)}
+          onDelete={handleDeleteCustomer}
         />
       )}
     </div>

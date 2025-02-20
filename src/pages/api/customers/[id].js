@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     } = req;
 
     switch (method) {
-        case 'GET': // Fetch a Single Customer
+        case 'GET':
             try {
                 const customer = await Customer.findOne({ _id: id, companyId });
                 if (!customer) {
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
             }
             break;
 
-        case 'PUT': // Update a Customer
+        case 'PUT':
             try {
                 const { error, value } = customerValidationSchema.validate(req.body);
                 if (error) {
