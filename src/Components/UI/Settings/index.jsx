@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-import { Building2, Users, Palette } from "lucide-react";
+import { Building2, Users, Palette, Database } from "lucide-react";
 import Company from "./Company";
-// import Users from "./Users";
-// import Appearance from "./Appearance";
+import User from "./Users";
+import Appearance from "./Appearance";
 import { cn } from "@/Components/Util/utils";
+import MetaField from "./MetaField";
 
 const tabs = [
   { id: "company", label: "Company", icon: Building2 },
   { id: "users", label: "Users", icon: Users },
+  { id: "meta", label: "Meta Fields", icon: Database },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
 
@@ -44,8 +46,9 @@ export function Settings() {
 
       <div className="bg-white rounded-xl shadow-sm">
         {activeTab === "company" && <Company />}
-        {/* {activeTab === "users" && <Users />}
-        {activeTab === "appearance" && <Appearance accentColor={accentColor} setAccentColor={setAccentColor} />} */}
+        {activeTab === "users" && <User />}
+        {activeTab === "appearance" && <Appearance accentColor={accentColor} setAccentColor={setAccentColor} />}
+        {activeTab === "meta" && <MetaField />}
       </div>
     </div>
   );
