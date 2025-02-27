@@ -7,7 +7,12 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        print: { raw: 'print' },
+        screen: { raw: 'screen' },
+      },
       colors: {
+        primaryColor: "#16a34a",
         green: {
           50: "#f0fdf4",
           100: "#dcfce7",

@@ -2,28 +2,31 @@ import React, { useState, useEffect } from "react";
 import { Download, Printer, Palette } from "lucide-react";
 import { useRouter } from "next/router";
 import { ApiRequest } from "../Util/apiRequest";
+import GetNumberToWords from "../Util/numberToWords";
 
 const defaultCompanyInfo = {
-  name: "Your Company Name",
-  logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=128&h=128&fit=crop&auto=format",
-  address: "123 Business Street",
-  city: "City, State 12345",
-  phone: "+1 (555) 123-4567",
-  email: "billing@company.com",
+  name: "Bike Zone",
+  // logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=128&h=128&fit=crop&auto=format",
+  address: "Balaji Nagar",
+  city: "Trichy Tanjore Highways",
+  phone: "+91 98424 90088",
+  email: "billing@.com",
   website: "www.company.com",
 };
 
 export function PrintBill() {
   const router = useRouter();
-  const [accentColor, setAccentColor] = useState("#16a34a");
-  const [showCustomization, setShowCustomization] = useState(false);
   const [companyInfo, setCompanyInfo] = useState(defaultCompanyInfo);
   const [billData, setBillData] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (router?.query?.id) {
-      console.log({ id: router.query.id });
+      ApiRequest(`/api/company`).then((res) => {
+        console.log({ res: res.data });
+        const { name, address, phoneNumber } = res.data;
+        setCompanyInfo({ name, address: address[0], city: address[1], number: phoneNumber });
+      });
       ApiRequest(`/api/bills/${router.query.id}`, "GET")
         .then((res) => {
           if (res.success) {
@@ -67,104 +70,44 @@ export function PrintBill() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">Bill Preview</h1>
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setShowCustomization(!showCustomization)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              <Palette size={20} className="mr-2" />
-              Customize
-            </button>
-            <button
+            {/* <button
               onClick={handleDownloadPDF}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               <Download size={20} className="mr-2" />
               Download PDF
-            </button>
+            </button> */}
             <button
               onClick={handlePrint}
               className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
-              <Printer size={20} className="mr-2" />
+              <Printer size={20} color="#fff" className="mr-2" />
               Print
             </button>
           </div>
         </div>
       </div>
 
-      {showCustomization && (
-        <div className="print:hidden fixed right-0 top-16 w-80 bg-white border-l h-full shadow-lg p-4 overflow-y-auto">
-          <h3 className="text-lg font-semibold mb-4">Customize Invoice</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color</label>
-              <input
-                type="color"
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
-                className="w-full h-10 p-1 rounded border"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-              <input
-                type="text"
-                value={companyInfo.name}
-                onChange={(e) => setCompanyInfo({ ...companyInfo, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
-              <input
-                type="text"
-                value={companyInfo.logo}
-                onChange={(e) => setCompanyInfo({ ...companyInfo, logo: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-              <textarea
-                value={companyInfo.address}
-                onChange={(e) => setCompanyInfo({ ...companyInfo, address: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                rows={2}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div
-        className="max-w-4xl mx-auto bg-white shadow-sm my-20 p-8 print:my-0 print:shadow-none"
-        style={{ "--accent-color": accentColor }}
-      >
+      <div className="max-w-4xl mx-auto bg-white shadow-sm remove-margin my-20 p-8 print:my-0 print:shadow-none">
         <div className="flex justify-between items-start mb-8">
           <div className="flex items-center space-x-4">
-            <img src={companyInfo.logo} alt="Company Logo" className="w-16 h-16 object-contain" />
+            {/* <img src={companyInfo.logo} alt="Company Logo" className="w-16 h-16 object-contain" /> */}
             <div>
-              <h2 className="text-2xl font-bold" style={{ color: accentColor }}>
-                {companyInfo.name}
-              </h2>
+              <h2 className="text-2xl text-primaryColor font-bold">{companyInfo.name}</h2>
               <p className="text-gray-600">{companyInfo.address}</p>
               <p className="text-gray-600">{companyInfo.city}</p>
             </div>
           </div>
           <div className="text-right">
-            <h1 className="text-4xl font-bold mb-4" style={{ color: accentColor }}>
-              INVOICE
-            </h1>
+            <h1 className="text-4xl text-primaryColor font-bold mb-4">INVOICE</h1>
             <p className="text-gray-600">Bill #{billData.billNumber}</p>
             <p className="text-gray-600">Date: {billData.metaData?.date}</p>
           </div>
         </div>
 
         <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-2" style={{ color: accentColor }}>
-            Bill To:
-          </h3>
-          <div className="border-l-4 pl-4" style={{ borderColor: accentColor }}>
+          <h3 className="text-lg text-primaryColor font-semibold mb-2">Bill To:</h3>
+          <div className="border-l-4 pl-4">
             <p className="font-semibold text-gray-600">{billData.customer.name}</p>
             <p className="text-gray-600">Customer Number: {billData.customer.number}</p>
             <p className="text-gray-600">{billData.customer.address || ""}</p>
@@ -173,7 +116,7 @@ export function PrintBill() {
 
         <table className="w-full mb-8">
           <thead>
-            <tr className="text-left" style={{ color: accentColor }}>
+            <tr className="text-left">
               <th className="py-2 font-semibold">Item Description</th>
               <th className="py-2 font-semibold text-right">Quantity</th>
               <th className="py-2 font-semibold text-right">Rate</th>
@@ -207,18 +150,20 @@ export function PrintBill() {
           </div>
           <div className="flex justify-between pt-2 text-gray-600 border-t font-bold text-lg">
             <span>Total:</span>
-            <span style={{ color: accentColor }}>${grandTotal.toFixed(2)}</span>
+            <span>${grandTotal.toFixed(2)}</span>
           </div>
+        </div>
+        <div className="mt-5">
+          Total amount in words - <span className="font-bold">{GetNumberToWords(grandTotal.toFixed(0))}</span>{" "}
         </div>
 
         <div className="mt-12 pt-4 border-t text-center text-gray-600">
-          <p className="font-medium" style={{ color: accentColor }}>
-            {companyInfo.name}
-          </p>
+          <p className="font-medium">{companyInfo.name}</p>
           <p>
-            {companyInfo.phone} | {companyInfo.email}
+            {companyInfo.number}
+            {/* {companyInfo.phone} | {companyInfo.email} */}
           </p>
-          <p>{companyInfo.website}</p>
+          {/* <p>{companyInfo.website}</p> */}
         </div>
       </div>
     </div>

@@ -68,7 +68,7 @@ export function Dashboard() {
           href={"/bill/create"}
           className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
         >
-          <Plus size={20} className="mr-2" />
+          <Plus color="white" size={20} className="mr-2" />
           Create New Bill
         </Link>
       </div>
