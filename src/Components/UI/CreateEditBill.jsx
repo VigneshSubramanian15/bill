@@ -6,23 +6,17 @@ import { ApiRequest } from "../Util/apiRequest";
 export function CreateEditBill() {
   const router = useRouter();
   const isCreateMode = router?.query?.id ? true : false;
-  const [billNumber, setBillNumber] = useState(
-    !isCreateMode
-      ? `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`
-      : "",
-  );
+  const [billNumber, setBillNumber] = useState();
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [customerInfo, setCustomerInfo] = useState("");
-  const [customerFiltered, setCustomerFiltered] = useState("");
+  const [customerFiltered, setCustomerFiltered] = useState([]);
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
-  const [lineItems, setLineItems] = useState([
-    { id: "1", name: "", quantity: 1, rate: "", total: 0 },
-  ]);
+  const [lineItems, setLineItems] = useState([{ id: "1", name: "", quantity: 1, rate: "", total: 0 }]);
   const [tax, setTax] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [error, setError] = useState("");
@@ -49,7 +43,7 @@ export function CreateEditBill() {
                 quantity: item.itemQty,
                 rate: item.itemPrice,
                 total: item.itemQty * item.itemPrice,
-              })),
+              }))
             );
             setTax(bill.tax);
             setDiscount(bill.discount);
@@ -58,15 +52,25 @@ export function CreateEditBill() {
           }
         })
         .catch(() => setError("Failed to load bill data"));
+    } else {
+      ApiRequest("/api/bills/getBillNo").then((data) => setBillNumber(incrementIfInteger(data.data.billNumber)));
     }
   }, [isCreateMode, router.query.billNumber]);
 
   useEffect(() => {
-    ApiRequest(`/api/customers?search=${customerInfo}`).then((Customers) => {
-      setCustomerFiltered(Customers.data);
-    });
+    if (customerInfo) {
+      ApiRequest(`/api/customers?search=${customerInfo}`).then((Customers) => {
+        setCustomerFiltered(Customers.data);
+      });
+    }
   }, [customerInfo]);
 
+  function incrementIfInteger(str) {
+    if (/^-?\d+$/.test(str)) {
+      return parseInt(str, 10) + 1;
+    }
+    return str;
+  }
   const handleCustomerSelect = (customer) => {
     setCustomerId(customer._id);
     setCustomerPhone(customer.number);
@@ -79,17 +83,15 @@ export function CreateEditBill() {
   const handleLineItemChange = (index, field, value) => {
     const newLineItems = [...lineItems];
     let numericValue = value.replace(/^0+/, "") || 0;
-    console.log({ numericValue });
 
     if (field === "quantity" || field === "rate") {
       numericValue = Number(value) || 0;
+      if (numericValue < 0) numericValue = 0;
     }
     const updatedItem = { ...newLineItems[index], [field]: numericValue };
     if (field === "quantity" || field === "rate") {
-      const quantity =
-        field === "quantity" ? numericValue : Number(updatedItem.quantity) || 0;
-      const rate =
-        field === "rate" ? numericValue : Number(updatedItem.rate) || 0;
+      const quantity = field === "quantity" ? numericValue : Number(updatedItem.quantity) || 0;
+      const rate = field === "rate" ? numericValue : Number(updatedItem.rate) || 0;
       updatedItem.total = quantity * rate;
     }
     newLineItems[index] = updatedItem;
@@ -120,8 +122,53 @@ export function CreateEditBill() {
   const discountAmount = (subtotal * (Number(discount) || 0)) / 100;
   const grandTotal = subtotal + taxAmount - discountAmount;
 
+  const validateForm = () => {
+    if (!customerName || !customerPhone) {
+      setError("Customer details are required");
+      return false;
+    }
+    if (!lineItems.length || lineItems.some((item) => !item.name || !item.rate)) {
+      setError("Each line item must have a name and rate");
+      return false;
+    }
+    if (lineItems.some((item) => item.quantity <= 0 || item.rate <= 0)) {
+      setError("Quantity and rate must be positive numbers");
+      return false;
+    }
+    if (tax < 0 || tax > 100) {
+      setError("Tax must be between 0 and 100%");
+      return false;
+    }
+    if (discount < 0 || discount > 100) {
+      setError("Discount must be between 0 and 100%");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSave = async () => {
+    setError("");
+    setSuccess("");
+
+    if (!validateForm()) {
+      return;
+    }
+
+    if (!customerId) {
+      const customer = await ApiRequest("/api/customers", "POST", {
+        name: customerName,
+        email: customerEmail,
+        number: customerPhone,
+        address: customerAddress,
+      });
+      setCustomerId(customer.data._id);
+      createBill(customer.data._id);
+    } else {
+      createBill();
+    }
+  };
+
   const createBill = async (newCustomerId) => {
-    console.log({ billNumber });
     const billData = {
       customer: {
         id: customerId || newCustomerId,
@@ -137,10 +184,10 @@ export function CreateEditBill() {
         itemPrice: item.rate,
       })),
       total: grandTotal.toFixed(2),
-      tax: tax,
-      discount: discount,
+      tax,
+      discount,
       metaData: {
-        date: date,
+        date,
       },
     };
     try {
@@ -149,72 +196,31 @@ export function CreateEditBill() {
       } else {
         await ApiRequest(`/api/bills/${router?.query?.id}`, "PUT", billData);
       }
-      setSuccess(
-        !isCreateMode
-          ? "Bill created successfully"
-          : "Bill updated successfully",
-      );
+      setSuccess(!isCreateMode ? "Bill created successfully" : "Bill updated successfully");
       router.push("/bills");
     } catch (err) {
       setError(err.message);
       console.error("Error saving bill:", err);
     }
   };
-  const handleSave = async () => {
-    setError("");
-    setSuccess("");
-    if (!customerId) {
-      const customer = await ApiRequest("/api/customers", "POST", {
-        name: customerName,
-        email: customerEmail,
-        number: customerPhone,
-        address: customerAddress,
-      });
-      setCustomerId(customer.data._id);
-      createBill(customer.data._id);
-    } else {
-      createBill();
-    }
-  };
 
   return (
     <div className="space-y-6 mx-auto">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {!isCreateMode ? "Create New Bill" : "Edit Bill"}
-          </h1>
-          <p className="text-gray-600">
-            {!isCreateMode
-              ? "Fill in the details to create a new bill"
-              : "Edit the bill details"}
-          </p>
-        </div>
-      </div>
-      {error && (
-        <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>
-      )}
-      {success && (
-        <div className="p-4 bg-green-100 text-green-700 rounded">{success}</div>
-      )}
+      {error && <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>}
+      {success && <div className="p-4 bg-green-100 text-green-700 rounded">{success}</div>}
       <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bill Number
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Bill Number</label>
             <input
               type="text"
-              disabled
-              onChange={({ target: { values } }) => setBillNumber(values)}
+              onChange={({ target: { value } }) => setBillNumber(value)}
               value={billNumber}
-              className="bg-gray-50 w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-600"
+              className=" w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
             <input
               type="date"
               value={date}
@@ -224,9 +230,7 @@ export function CreateEditBill() {
           </div>
         </div>
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Customer Phone Number
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone Number</label>
           <input
             type="number"
             value={customerInfo || customerPhone}
@@ -255,14 +259,9 @@ export function CreateEditBill() {
           ) : (
             ""
           )}
-          <div
-            style={{ marginTop: "20px" }}
-            className=" mt-5 grid grid-cols-1 md:grid-cols-2 gap-6"
-          >
+          <div style={{ marginTop: "20px" }} className=" mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Customer Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
               <input
                 type="text"
                 value={customerName}
@@ -272,9 +271,7 @@ export function CreateEditBill() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Customer Email
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Customer Email</label>
               <input
                 type="email"
                 value={customerEmail}
@@ -285,9 +282,7 @@ export function CreateEditBill() {
             </div>
           </div>
           <div style={{ marginTop: "20px" }}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Customer Address
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Customer Address</label>
             <input
               type="email"
               value={customerAddress}
@@ -337,9 +332,7 @@ export function CreateEditBill() {
                       <input
                         type="text"
                         value={item.name}
-                        onChange={(e) =>
-                          handleLineItemChange(index, "name", e.target.value)
-                        }
+                        onChange={(e) => handleLineItemChange(index, "name", e.target.value)}
                         style={{ minWidth: 220 }}
                         className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="Item name"
@@ -351,11 +344,7 @@ export function CreateEditBill() {
                         value={item.quantity}
                         style={{ minWidth: 70 }}
                         onChange={(e) =>
-                          handleLineItemChange(
-                            index,
-                            "quantity",
-                            e.target.value.replace(/^0+/, "") || 0,
-                          )
+                          handleLineItemChange(index, "quantity", e.target.value.replace(/^0+/, "") || 0)
                         }
                         className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         min="1"
@@ -366,28 +355,17 @@ export function CreateEditBill() {
                         type="number"
                         value={item.rate}
                         style={{ minWidth: 100 }}
-                        onChange={(e) =>
-                          handleLineItemChange(
-                            index,
-                            "rate",
-                            e.target.value.replace(/^0+/, "") || 0,
-                          )
-                        }
+                        onChange={(e) => handleLineItemChange(index, "rate", e.target.value.replace(/^0+/, "") || 0)}
                         className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         min="0"
                         step="0.01"
                       />
                     </td>
                     <td className="px-4 py-2">
-                      <span className="text-gray-900 font-medium">
-                        ₹{item.total.toFixed(2)}
-                      </span>
+                      <span className="text-gray-900 font-medium">₹{item.total.toFixed(2)}</span>
                     </td>
                     <td className="px-4 py-2">
-                      <button
-                        onClick={() => removeLineItem(index)}
-                        className="text-red-600 hover:text-red-800"
-                      >
+                      <button onClick={() => removeLineItem(index)} className="text-red-600 hover:text-red-800">
                         <Minus size={16} />
                       </button>
                     </td>
@@ -400,9 +378,7 @@ export function CreateEditBill() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
           <div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tax (%)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tax (%)</label>
               <input
                 type="number"
                 value={tax}
@@ -416,16 +392,12 @@ export function CreateEditBill() {
               />
             </div>
             <div className="pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Discount (%)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
               <input
                 type="number"
                 value={discount}
                 style={{ maxWidth: 250 }}
-                onChange={(e) =>
-                  setDiscount(e.target.value.replace(/^0+/, "") || 0)
-                }
+                onChange={(e) => setDiscount(e.target.value.replace(/^0+/, "") || 0)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Discount (%)"
                 min="0"
@@ -438,27 +410,19 @@ export function CreateEditBill() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Subtotal:</span>
-                <span className="text-gray-900 font-medium">
-                  ₹{subtotal.toFixed(2)}
-                </span>
+                <span className="text-gray-900 font-medium">₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Tax:</span>
-                <span className="text-gray-900 font-medium">
-                  ₹{taxAmount.toFixed(2)}
-                </span>
+                <span className="text-gray-900 font-medium">₹{taxAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Discount:</span>
-                <span className="text-gray-900 font-medium">
-                  ₹{discountAmount.toFixed(2)}
-                </span>
+                <span className="text-gray-900 font-medium">₹{discountAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Grand Total:</span>
-                <span className="text-gray-900 font-medium">
-                  ₹{grandTotal.toFixed(2)}
-                </span>
+                <span className="text-gray-900 font-medium">₹{grandTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>
