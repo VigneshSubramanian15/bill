@@ -12,6 +12,14 @@ const BillSchema = new mongoose.Schema(
             ref: 'User', // assuming you have a Customer model
             required: true
         },
+        date: {
+            type: Date,
+            required: true
+        },
+        metaData: {
+            type: mongoose.Schema.Types.Mixed,
+            default: {},
+        },
         customer: {
             id: {
                 type: mongoose.Schema.Types.ObjectId,
@@ -68,10 +76,6 @@ const BillSchema = new mongoose.Schema(
         discount: {
             type: Number,
             default: 0
-        },
-        metaData: {
-            type: mongoose.Schema.Types.Mixed,
-            default: {},
         },
     },
     { timestamps: true }

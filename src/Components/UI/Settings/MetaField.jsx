@@ -225,6 +225,8 @@ export default function MetaField() {
   const handleAddMetaField = (newField) => {
     if (newField.metaType === "billMetaField") {
       delete newField.showInBill;
+    } else {
+      delete newField.addToTotal;
     }
     ApiRequest("/api/settings/metafields", "POST", newField).then(
       (res) => fetchMetaFields(),

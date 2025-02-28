@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Download, Printer, Palette } from "lucide-react";
+import { Download, Printer, Palette, SquareCheckIcon, Square } from "lucide-react";
 import { useRouter } from "next/router";
 import { ApiRequest } from "../Util/apiRequest";
 import GetNumberToWords from "../Util/numberToWords";
@@ -100,18 +100,39 @@ export function PrintBill() {
           </div>
           <div className="text-right">
             <h1 className="text-4xl text-primaryColor font-bold mb-4">INVOICE</h1>
-            <p className="text-gray-600">Bill #{billData.billNumber}</p>
-            <p className="text-gray-600">Date: {billData.metaData?.date}</p>
+            <p className="text-gray-600">Bill Number #{billData.billNumber}</p>
+            <p className="text-gray-600">Date: {new Date(billData.date).toLocaleDateString()}</p>
           </div>
         </div>
 
-        <div className="mb-8">
-          <h3 className="text-lg text-primaryColor font-semibold mb-2">Bill To:</h3>
-          <div className="border-l-4 pl-4">
-            <p className="font-semibold text-gray-600">{billData.customer.name}</p>
-            <p className="text-gray-600">Customer Number: {billData.customer.number}</p>
-            <p className="text-gray-600">{billData.customer.address || ""}</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h3 className="text-lg text-primaryColor font-semibold mb-2">Bill To:</h3>
+            <div className="border-l-4 pl-4">
+              <p className="font-semibold text-gray-600">{billData.customer.name}</p>
+              <p className="text-gray-600">Customer Number: {billData.customer.number}</p>
+              <p className="text-gray-600">{billData.customer.address || ""}</p>
+            </div>
           </div>
+          {billData.metaData.length && (
+            <div>
+              {billData.metaData.map((meta) =>
+                meta.dataType !== "Boolean" ? (
+                  <p className="text-gray-600">
+                    {meta.label}: <span className="font-semibold"> {meta.value} </span>
+                  </p>
+                ) : (
+                  <p className="text-gray-600 flex">
+                    {meta.label}:{" "}
+                    <span style={{ marginLeft: "7px" }} className="font-semibold block">
+                      {" "}
+                      {meta.value ? <SquareCheckIcon /> : <Square />}{" "}
+                    </span>
+                  </p>
+                )
+              )}
+            </div>
+          )}
         </div>
 
         <table className="w-full mb-8">
@@ -128,8 +149,8 @@ export function PrintBill() {
               <tr key={index} className="border-b text-gray-600 last:border-b-0">
                 <td className="py-3">{item.itemName}</td>
                 <td className="py-3 text-right">{item.itemQty}</td>
-                <td className="py-3 text-right">${Number(item.itemPrice).toFixed(2)}</td>
-                <td className="py-3 text-right">${item.total.toFixed(2)}</td>
+                <td className="py-3 text-right">₹{Number(item.itemPrice).toFixed(2)}</td>
+                <td className="py-3 text-right">₹{item.total.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -138,19 +159,19 @@ export function PrintBill() {
         <div className="w-1/2 ml-auto space-y-2">
           <div className="flex justify-between">
             <span className="text-gray-600">Subtotal:</span>
-            <span className="font-medium text-gray-600">${subtotal.toFixed(2)}</span>
+            <span className="font-medium text-gray-600">₹{subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Tax ({billData.tax}%):</span>
-            <span className="font-medium text-gray-600">${taxAmount.toFixed(2)}</span>
+            <span className="font-medium text-gray-600">₹{taxAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Discount ({billData.discount}%):</span>
-            <span className="font-medium text-gray-600">-${discountAmount.toFixed(2)}</span>
+            <span className="font-medium text-gray-600">-₹{discountAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between pt-2 text-gray-600 border-t font-bold text-lg">
             <span>Total:</span>
-            <span>${grandTotal.toFixed(2)}</span>
+            <span>₹{grandTotal.toFixed(2)}</span>
           </div>
         </div>
         <div className="mt-5">

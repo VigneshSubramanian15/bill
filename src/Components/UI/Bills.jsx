@@ -18,17 +18,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const FilterDropdown = ({ label, options }) => {
-  return (
-    <div className="relative">
-      <button className="flex items-center space-x-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
-        <span>{label}</span>
-        <ChevronDown size={16} />
-      </button>
-    </div>
-  );
-};
-
 const DeleteConfirmationPopup = ({ bill, onClose, onDelete }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
     <div className="bg-white rounded-xl max-w-md w-full p-6">
@@ -194,7 +183,9 @@ export function Bills() {
                     <td onClick={() => router.push(`/bill/${bill._id}`)} className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={bill.status || "paid"} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bill.metaData?.date || ""}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {new Date(bill.createdAt).toLocaleDateString() || ""}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button

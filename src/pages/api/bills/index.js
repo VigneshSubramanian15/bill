@@ -12,6 +12,7 @@ const billValidationSchema = Joi.object({
     address: Joi.string(),
   }).required(),
   billNumber: Joi.string().required(),
+  date: Joi.date().required(),
   items: Joi.array()
     .items(
       Joi.object({
@@ -25,7 +26,7 @@ const billValidationSchema = Joi.object({
   total: Joi.number().required(),
   tax: Joi.number().default(0),
   discount: Joi.number().default(0),
-  metaData: Joi.object().optional(),
+  metaData: Joi.array().items(Joi.object()).optional(),
 });
 
 export default async function handler(req, res) {

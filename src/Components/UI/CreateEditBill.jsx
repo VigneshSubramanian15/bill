@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Minus, Save } from "lucide-react";
+import { Plus, Minus, Save, Square, CheckSquare2Icon } from "lucide-react";
 import { useRouter } from "next/router";
 import { ApiRequest } from "../Util/apiRequest";
 
@@ -15,6 +15,8 @@ export function CreateEditBill() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
+  const [MetaFields, setMetaFields] = useState([]);
+  const [MetaFieldVlaues, setMetaFieldVlaues] = useState([]);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [lineItems, setLineItems] = useState([{ id: "1", name: "", quantity: 1, rate: "", total: 0 }]);
   const [tax, setTax] = useState(0);
@@ -55,6 +57,20 @@ export function CreateEditBill() {
     } else {
       ApiRequest("/api/bills/getBillNo").then((data) => setBillNumber(incrementIfInteger(data.data.billNumber)));
     }
+    ApiRequest("/api/settings/metafields").then((data) => {
+      const order = {
+        String: 1,
+        Number: 2,
+        MultiSelect: 3,
+        Select: 4,
+        Boolean: 5,
+      };
+      const meta = [...data.data.billMetaField, ...data.data.customerMetaField].sort(
+        (a, b) => order[a.dataType] - order[b.dataType]
+      );
+      console.log({ meta });
+      setMetaFields(meta);
+    });
   }, [isCreateMode, router.query.billNumber]);
 
   useEffect(() => {
@@ -177,7 +193,8 @@ export function CreateEditBill() {
         email: customerEmail,
         address: customerAddress,
       },
-      billNumber,
+      billNumber: billNumber.toString(),
+      date,
       items: lineItems.map((item) => ({
         itemName: item.name,
         itemQty: item.quantity,
@@ -186,9 +203,11 @@ export function CreateEditBill() {
       total: grandTotal.toFixed(2),
       tax,
       discount,
-      metaData: {
-        date,
-      },
+      metaData:
+        Object.keys(MetaFieldVlaues).map((key) => {
+          const metaInfo = MetaFields.find((m) => m.name === key);
+          return { ...metaInfo, value: MetaFieldVlaues[key] };
+        }) || [],
     };
     try {
       if (!isCreateMode) {
@@ -293,6 +312,40 @@ export function CreateEditBill() {
           </div>
         </div>
 
+        {/* Meta Fields */}
+        <hr />
+        <div className="flex justify-center items-center flex-wrap">
+          {MetaFields?.map((meta) =>
+            meta.dataType === "String" ? (
+              <div className="w-full md:w-1/2 px-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">{meta.label}</label>
+                <input
+                  type="email"
+                  value={MetaFieldVlaues[meta.name]}
+                  onChange={(e) => setMetaFieldVlaues((m) => ({ ...m, [meta.name]: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Enter customer email"
+                />
+              </div>
+            ) : (
+              <div className="w-1/2 md:w-1/4 px-3">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={MetaFieldVlaues[meta.name]}
+                    onChange={(e) => setMetaFieldVlaues((m) => ({ ...m, [meta.name]: e.target.checked }))}
+                    className="hidden peer"
+                  />
+                  <span>{MetaFieldVlaues[meta.name] ? <CheckSquare2Icon size={20} /> : <Square size={20} />}</span>
+                  <span className="ml-2 text-sm text-gray-700">{meta.label}</span>
+                </label>
+              </div>
+            )
+          )}
+        </div>
+        <hr />
+
+        {/* Meta Fields */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900">Line Items</h3>
