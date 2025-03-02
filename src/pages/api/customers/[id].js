@@ -1,7 +1,7 @@
 import dbConnect from '@/Components/Util/mongodb';
 import Customer from '@/Components/Models/Customer';
 import Joi from 'joi';
-import { getJWTTokenData } from '@/Components/Util/auth';
+import { ErrorResponse, getJWTTokenData } from '@/Components/Util/auth';
 
 // Validation Schema for Updating Customer
 const customerValidationSchema = Joi.object({
@@ -25,11 +25,11 @@ export default async function handler(req, res) {
             try {
                 const customer = await Customer.findOne({ _id: id, companyId });
                 if (!customer) {
-                    return res.status(404).json({ success: false, message: 'Customer not found' });
+                    return ErrorResponse(res, 'Customer not found', 404)
                 }
                 res.status(200).json({ success: true, data: customer });
             } catch (error) {
-                res.status(400).json({ success: false, error: error.message });
+                return ErrorResponse(res, error.message, 400)
             }
             break;
 
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
             try {
                 const { error, value } = customerValidationSchema.validate(req.body);
                 if (error) {
-                    return res.status(400).json({ success: false, error: error.details[0].message });
+                    return ErrorResponse(res, error.details.map(d => d.message), 400)
                 }
 
                 const updatedCustomer = await Customer.findOneAndUpdate(
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
                 );
 
                 if (!updatedCustomer) {
-                    return res.status(404).json({ success: false, message: 'Customer not found' });
+                    return ErrorResponse(res, 'Customer not found', 404)
                 }
 
                 res.status(200).json({ success: true, data: updatedCustomer });
@@ -61,17 +61,17 @@ export default async function handler(req, res) {
                 const deletedCustomer = await Customer.findOneAndDelete({ _id: id, companyId });
 
                 if (!deletedCustomer) {
-                    return res.status(404).json({ success: false, message: 'Customer not found' });
+                    return ErrorResponse(res, 'Customer not found', 404)
                 }
 
                 res.status(200).json({ success: true, message: 'Customer deleted successfully' });
             } catch (error) {
-                res.status(400).json({ success: false, error: error.message });
+                return ErrorResponse(res, error.message, 400)
             }
             break;
 
         default:
             res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
-            res.status(405).end(`Method ${method} Not Allowed`);
+            return ErrorResponse(res, `Method ${method} Not Allowed`, 405)
     }
 }

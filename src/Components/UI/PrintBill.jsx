@@ -65,10 +65,10 @@ export function PrintBill() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="print:hidden fixed top-0 left-0 right-0 bg-white border-b shadow-sm z-50">
+    <div className="min-h-screen bg-gray-50 print:bg-white">
+      <div className="print:hidden fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Bill Preview</h1>
+          <h1 className="text-xl ml-12 font-semibold text-green-600">Bill Number {billData.billNumber}</h1>
           <div className="flex items-center space-x-4">
             {/* <button
               onClick={handleDownloadPDF}
@@ -91,15 +91,15 @@ export function PrintBill() {
       <div className="max-w-4xl mx-auto bg-white shadow-sm remove-margin my-20 p-8 print:my-0 print:shadow-none">
         <div className="flex justify-between items-start mb-8">
           <div className="flex items-center space-x-4">
-            {/* <img src={companyInfo.logo} alt="Company Logo" className="w-16 h-16 object-contain" /> */}
+            {companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" className="w-16 h-16 object-contain" />}
             <div>
-              <h2 className="text-2xl text-primaryColor font-bold">{companyInfo.name}</h2>
+              <h2 className="text-2xl text-green-600 font-bold">{companyInfo.name}</h2>
               <p className="text-gray-600">{companyInfo.address}</p>
               <p className="text-gray-600">{companyInfo.city}</p>
             </div>
           </div>
           <div className="text-right">
-            <h1 className="text-4xl text-primaryColor font-bold mb-4">INVOICE</h1>
+            <h1 className="text-4xl text-green-600 font-bold mb-4">INVOICE</h1>
             <p className="text-gray-600">Bill Number #{billData.billNumber}</p>
             <p className="text-gray-600">Date: {new Date(billData.date).toLocaleDateString()}</p>
           </div>
@@ -107,8 +107,8 @@ export function PrintBill() {
 
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h3 className="text-lg text-primaryColor font-semibold mb-2">Bill To:</h3>
-            <div className="border-l-4 pl-4">
+            <h3 className="text-lg text-green-600 font-semibold mb-2">Bill To:</h3>
+            <div className="border-l-4 border-green-500 pl-4">
               <p className="font-semibold text-gray-600">{billData.customer.name}</p>
               <p className="text-gray-600">Customer Number: {billData.customer.number}</p>
               <p className="text-gray-600">{billData.customer.address || ""}</p>
@@ -138,10 +138,10 @@ export function PrintBill() {
         <table className="w-full mb-8">
           <thead>
             <tr className="text-left">
-              <th className="py-2 font-semibold">Item Description</th>
-              <th className="py-2 font-semibold text-right">Quantity</th>
-              <th className="py-2 font-semibold text-right">Rate</th>
-              <th className="py-2 font-semibold text-right">Amount</th>
+              <th className="py-2 font-semibold text-green-600">Item Description</th>
+              <th className="py-2 font-semibold text-right text-green-600">Quantity</th>
+              <th className="py-2 font-semibold text-right text-green-600">Rate</th>
+              <th className="py-2 font-semibold text-right text-green-600">Amount</th>
             </tr>
           </thead>
           <tbody className="border-t border-b">
@@ -169,13 +169,14 @@ export function PrintBill() {
             <span className="text-gray-600">Discount ({billData.discount}%):</span>
             <span className="font-medium text-gray-600">-₹{discountAmount.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between pt-2 text-gray-600 border-t font-bold text-lg">
+          <div className="flex justify-between pt-2 text-gray-600 border-y font-bold text-lg">
             <span>Total:</span>
             <span>₹{grandTotal.toFixed(2)}</span>
           </div>
         </div>
         <div className="mt-5">
-          Total amount in words - <span className="font-bold">{GetNumberToWords(grandTotal.toFixed(0))}</span>{" "}
+          Total amount in words -{" "}
+          <span className="font-extrabold text-green-600">{GetNumberToWords(grandTotal.toFixed(0))}</span>{" "}
         </div>
 
         <div className="mt-12 pt-4 border-t text-center text-gray-600">

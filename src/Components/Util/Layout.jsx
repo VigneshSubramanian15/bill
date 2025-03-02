@@ -20,7 +20,7 @@ export function Layout({ children }) {
     <div className="min-h-screen bg-gray-50">
       {/* Mobile menu button */}
       <button
-        className="lg:hidden no-print fixed top-4 right-4 z-50 p-2 rounded-md bg-white shadow-md"
+        className="lg:hidden print:hidden fixed top-4 right-4 z-50 p-2 rounded-md bg-white shadow-md"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       >
         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -72,7 +72,7 @@ export function Layout({ children }) {
 
       {/* Main content */}
       <div className="lg:ml-64 min-h-screen">
-        <main className="p-6">{/* <Outlet /> */ children}</main>
+        <main className="p-6 print:p-0">{/* <Outlet /> */ children}</main>
       </div>
     </div>
   );

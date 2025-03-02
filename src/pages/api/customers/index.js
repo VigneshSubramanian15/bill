@@ -1,9 +1,8 @@
 import dbConnect from '@/Components/Util/mongodb';
 import Customer from '@/Components/Models/Customer';
 import Joi from 'joi';
-import { getJWTTokenData } from '@/Components/Util/auth';
+import { ErrorResponse, getJWTTokenData } from '@/Components/Util/auth';
 
-// Validation Schema
 const customerValidationSchema = Joi.object({
     name: Joi.string().required().messages({ 'string.empty': 'Customer name is required' }),
     number: Joi.string().required().messages({ 'string.empty': 'Customer number is required' }),
@@ -50,7 +49,7 @@ export default async function handler(req, res) {
                     pages: Math.ceil(total / limitNum),
                 });
             } catch (error) {
-                res.status(400).json({ success: false, error: error.message });
+                return ErrorResponse(res, error.message, 400)
             }
 
 
@@ -58,17 +57,17 @@ export default async function handler(req, res) {
             try {
                 const { error, value } = customerValidationSchema.validate(req.body);
                 if (error) {
-                    return res.status(400).json({ success: false, error: error.details[0].message });
+                    return ErrorResponse(res, error.details.map(d => d.message), 400)
                 }
                 const newCustomer = await Customer.create({ companyId, userId, ...value });
                 res.status(201).json({ success: true, data: newCustomer });
             } catch (error) {
-                res.status(400).json({ success: false, error: error.message });
+                return ErrorResponse(res, error.message, 400)
             }
             break;
 
         default:
             res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-            res.status(405).end(`Method ${method} Not Allowed`);
+            return ErrorResponse(res, `Method ${method} Not Allowed`, 405)
     }
 }

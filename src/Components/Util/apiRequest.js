@@ -1,4 +1,3 @@
-// utils/curl.js
 import { decryptData } from './crypto';
 
 export async function ApiRequest(url, method = "GET", data = null) {
@@ -25,12 +24,12 @@ export async function ApiRequest(url, method = "GET", data = null) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || `Request failed with status ${response.status}`);
+            throw new Error(errorData.error || `Request failed with status ${response.status}`);
         }
 
         return await response.json();
     } catch (error) {
-        console.error("Curl request error:", error);
-        throw error;
+        console.log("error:", error.message);
+        return window.location.href = "/login";
     }
 }

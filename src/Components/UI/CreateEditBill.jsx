@@ -313,7 +313,7 @@ export function CreateEditBill() {
         </div>
 
         {/* Meta Fields */}
-        <hr />
+        <hr className="text-gray-300" />
         <div className="flex justify-center items-center flex-wrap">
           {MetaFields?.map((meta) =>
             meta.dataType === "String" ? (
@@ -324,7 +324,7 @@ export function CreateEditBill() {
                   value={MetaFieldVlaues[meta.name]}
                   onChange={(e) => setMetaFieldVlaues((m) => ({ ...m, [meta.name]: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter customer email"
+                  placeholder={meta.label}
                 />
               </div>
             ) : (
@@ -343,7 +343,7 @@ export function CreateEditBill() {
             )
           )}
         </div>
-        <hr />
+        <hr className="text-gray-300" />
 
         {/* Meta Fields */}
         <div className="space-y-4">
@@ -428,7 +428,7 @@ export function CreateEditBill() {
             </table>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-300 pt-6">
           <div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tax (%)</label>

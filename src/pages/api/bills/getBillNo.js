@@ -1,6 +1,6 @@
 import dbConnect from '@/Components/Util/mongodb';
 import Bill from '@/Components/Models/Bill';
-import { getJWTTokenData } from '@/Components/Util/auth';
+import { ErrorResponse, getJWTTokenData } from '@/Components/Util/auth';
 
 export default async function handler(req, res) {
     await dbConnect();
@@ -12,19 +12,18 @@ export default async function handler(req, res) {
             try {
                 const bill = await Bill.findOne({ companyId }).sort({ _id: -1 }).select("billNumber");
                 if (!bill) {
-                    return res.status(404).json({ success: false, message: 'Bill not found' });
+                    return ErrorResponse(res, 'Bill not found', 404);
                 }
                 res.status(200).json({ success: true, data: bill });
 
             } catch (error) {
                 console.log(error);
-
-                res.status(400).json({ success: false, error: error.message });
+                return ErrorResponse(res, error.message, 400)
             }
             break;
         default:
             res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
-            res.status(405).end(`Method ${method} Not Allowed`);
+            return ErrorResponse(res, `Method ${method} Not Allowed`, 405)
     }
 
 }

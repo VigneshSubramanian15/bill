@@ -1,7 +1,7 @@
 import dbConnect from '@/Components/Util/mongodb';
 import Company from '@/Components/Models/CompanySchema';
 import Joi from 'joi';
-import { getJWTTokenData } from '@/Components/Util/auth';
+import { ErrorResponse, getJWTTokenData } from '@/Components/Util/auth';
 
 const companyValidationSchema = Joi.object({
     name: Joi.string().trim(),
@@ -25,11 +25,11 @@ export default async function handler(req, res) {
             try {
                 const company = await Company.findById(companyId).select(["-_id", "address", "email", "logo", "name", "phone", "tagline", "website", "phoneNumber", "tagline", "upiId"]);
                 if (!company) {
-                    return res.status(404).json({ success: false, message: 'Company not found' });
+                    return ErrorResponse(res, 'Company not found', 404)
                 }
                 res.status(200).json({ success: true, data: company });
             } catch (error) {
-                res.status(400).json({ success: false, error: error.message });
+                return ErrorResponse(res, error.message, 400)
             }
             break;
         case 'PUT':
@@ -38,22 +38,22 @@ export default async function handler(req, res) {
                 const { error, value } = companyValidationSchema.validate(req.body);
                 console.log({ value })
                 if (error) {
-                    return res.status(400).json({ success: false, error: error.details.map(d => d.message) });
+                    return ErrorResponse(res, error.details.map(d => d.message), 400)
                 }
                 const updatedCompany = await Company.findByIdAndUpdate(companyId, value, {
                     new: true,
                     runValidators: true,
                 });
                 if (!updatedCompany) {
-                    return res.status(404).json({ success: false, message: 'Company not found' });
+                    return ErrorResponse(res, 'Company not found', 404)
                 }
                 res.status(200).json({ success: true, data: updatedCompany });
             } catch (error) {
-                res.status(400).json({ success: false, error: error.message });
+                return ErrorResponse(res, error.message, 400)
             }
             break;
         default:
             res.setHeader('Allow', ['GET', 'PUT']);
-            res.status(405).end(`Method ${method} Not Allowed`);
+            return ErrorResponse(res, `Method ${method} Not Allowed`, 405)
     }
 }
