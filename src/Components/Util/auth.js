@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 export function getJWTTokenData(req) {
-    const authHeader = req.headers.authorization;
+    const authHeader = req?.headers?.authorization;
     if (!authHeader) {
         const error = new Error('Authentication Error');
         error.statusCode = 401;

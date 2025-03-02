@@ -47,7 +47,7 @@ export function Layout({ children }) {
                 href={item.path}
                 className={`
                   flex items-center space-x-3 px-4 py-3 mb-2 rounded-lg transition-colors
-                  ${isActive ? "bg-green-50 text-green-600" : "text-gray-600 hover:bg-gray-50"}
+                  ${isActive ? "bg-green-50 text-green-600" : "!text-gray-600 hover:bg-gray-50"}
                 `}
               >
                 <Icon size={20} />
@@ -61,7 +61,8 @@ export function Layout({ children }) {
           <button
             className="flex items-center space-x-3 px-4 py-3 w-full text-gray-600 hover:bg-gray-50 rounded-lg"
             onClick={() => {
-              /* Add logout logic */
+              window.localStorage.clear();
+              window.location.href = "/login";
             }}
           >
             <LogOut size={20} />
