@@ -178,7 +178,7 @@ export function Bills() {
                       onClick={() => router.push(`/bill/${bill._id}`)}
                       className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
                     >
-                      {bill.total ? `$${Number(bill.total).toFixed(2)}` : "$0.00"}
+                      {bill.total ? `₹${Number(bill.total).toFixed(2)}` : "₹0.00"}
                     </td>
                     <td onClick={() => router.push(`/bill/${bill._id}`)} className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={bill.status || "paid"} />

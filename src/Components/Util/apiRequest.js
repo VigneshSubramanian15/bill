@@ -30,6 +30,8 @@ export async function ApiRequest(url, method = "GET", data = null) {
         return await response.json();
     } catch (error) {
         console.log("error:", error.message);
-        return window.location.href = "/login";
+        if (error.message === "Authentication Error") {
+            window.location.href = "/login";
+        }
     }
 }

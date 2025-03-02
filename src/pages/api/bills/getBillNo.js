@@ -12,7 +12,8 @@ export default async function handler(req, res) {
             try {
                 const bill = await Bill.findOne({ companyId }).sort({ _id: -1 }).select("billNumber");
                 if (!bill) {
-                    return ErrorResponse(res, 'Bill not found', 404);
+                    res.status(200).json({ success: true, data: { billNumber: 0 } });
+                    // return ErrorResponse(res, 'Bill not found', 404);
                 }
                 res.status(200).json({ success: true, data: bill });
 
