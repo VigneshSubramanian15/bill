@@ -60,7 +60,7 @@ export default async function handler(req, res) {
                 if (!updatedBill) {
                     return ErrorResponse(res, 'Bill not found', 404)
                 }
-                res.status(200).json({ success: true, data: updatedBill });
+                res.status(200).json({ success: true, data: updatedBill._id });
             } catch (error) {
                 return ErrorResponse(res, error.message, 400)
             }

@@ -7,7 +7,7 @@ const customerValidationSchema = Joi.object({
     name: Joi.string().required().messages({ 'string.empty': 'Customer name is required' }),
     number: Joi.string().required().messages({ 'string.empty': 'Customer number is required' }),
     email: Joi.string().email().required().messages({ 'string.email': 'Invalid email format', 'string.empty': 'Customer email is required' }),
-    address: Joi.string().email().messages({ 'string.empty': 'Address is required' }),
+    address: Joi.string().messages({ 'string.empty': 'Address is required' }),
 });
 
 export default async function handler(req, res) {

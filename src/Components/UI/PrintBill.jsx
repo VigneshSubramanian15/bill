@@ -174,7 +174,7 @@ export function PrintBill() {
             <span>₹{grandTotal.toFixed(2)}</span>
           </div>
         </div>
-        <div className="mt-5">
+        <div className="mt-5 text-gray-600">
           Total amount in words -{" "}
           <span className="font-extrabold text-green-600">{GetNumberToWords(grandTotal.toFixed(0))}</span>{" "}
         </div>

@@ -66,7 +66,7 @@ export default async function handler(req, res) {
             return ErrorResponse(res, error.details[0].message, 400)
           }
           const newBill = await Bill.create({ companyId, userId, ...value });
-          res.status(201).json({ success: true, data: newBill });
+          res.status(201).json({ success: true, data: newBill._id });
         } catch (error) {
           return ErrorResponse(res, error.message, 400)
         }

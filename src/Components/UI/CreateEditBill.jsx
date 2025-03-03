@@ -210,13 +210,15 @@ export function CreateEditBill() {
         }) || [],
     };
     try {
+      let billId = "";
       if (!isCreateMode) {
-        await ApiRequest("/api/bills", "POST", billData);
+        billId = await ApiRequest("/api/bills", "POST", billData);
       } else {
-        await ApiRequest(`/api/bills/${router?.query?.id}`, "PUT", billData);
+        billId = await ApiRequest(`/api/bills/${router?.query?.id}`, "PUT", billData);
       }
+      console.log({ billId });
       setSuccess(!isCreateMode ? "Bill created successfully" : "Bill updated successfully");
-      router.push("/bills");
+      router.push(`/bill/${billId.data}`);
     } catch (err) {
       setError(err.message);
       console.error("Error saving bill:", err);
@@ -313,7 +315,7 @@ export function CreateEditBill() {
         </div>
 
         {/* Meta Fields */}
-        <hr className="text-gray-300" />
+        <hr className="!text-gray-300" />
         <div className="flex justify-center items-center flex-wrap">
           {MetaFields?.map((meta) =>
             meta.dataType === "String" ? (
@@ -328,7 +330,7 @@ export function CreateEditBill() {
                 />
               </div>
             ) : (
-              <div className="w-1/2 md:w-1/4 px-3">
+              <div className="w-1/2 mt-3 md:w-1/4 px-3">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -343,7 +345,7 @@ export function CreateEditBill() {
             )
           )}
         </div>
-        <hr className="text-gray-300" />
+        <hr className="!text-gray-300" />
 
         {/* Meta Fields */}
         <div className="space-y-4">
