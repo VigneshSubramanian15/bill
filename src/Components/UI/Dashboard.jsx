@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Plus, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "../Util/utils";
@@ -56,6 +56,12 @@ const StatusBadge = ({ status }) => {
 };
 
 export function Dashboard() {
+  useEffect(() => {
+    const storedToken = localStorage.getItem("authToken");
+    if (!storedToken) {
+      window.location.href = "/login";
+    }
+  }, []);
   return (
     <div className="space-y-6">
       {/* Header */}
