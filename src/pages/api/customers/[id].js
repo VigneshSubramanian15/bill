@@ -7,7 +7,7 @@ import { ErrorResponse, getJWTTokenData } from '@/Components/Util/auth';
 const customerValidationSchema = Joi.object({
     name: Joi.string().required().messages({ 'string.empty': 'Customer name is required' }),
     number: Joi.string().required().messages({ 'string.empty': 'Customer number is required' }),
-    email: Joi.string().email().required().messages({ 'string.email': 'Invalid email format', 'string.empty': 'Customer email is required' }),
+    email: Joi.string().email(),
     address: Joi.string().messages({ 'string.empty': 'Address is required' }),
 });
 

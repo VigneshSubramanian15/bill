@@ -35,8 +35,7 @@ const BillSchema = new mongoose.Schema(
                 required: [true, 'Customer number is required']
             },
             email: {
-                type: String,
-                required: [true, 'Customer email is required']
+                type: String
             },
             address: {
                 type: String,

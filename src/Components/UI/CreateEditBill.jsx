@@ -101,16 +101,10 @@ export function CreateEditBill() {
 
   const handleLineItemChange = (index, field, value) => {
     const newLineItems = [...lineItems];
-    let numericValue = value.replace(/^0+/, "") || 0;
-
+    const updatedItem = { ...newLineItems[index], [field]: value };
     if (field === "quantity" || field === "rate") {
-      numericValue = Number(value) || 0;
-      if (numericValue < 0) numericValue = 0;
-    }
-    const updatedItem = { ...newLineItems[index], [field]: numericValue };
-    if (field === "quantity" || field === "rate") {
-      const quantity = field === "quantity" ? numericValue : Number(updatedItem.quantity) || 0;
-      const rate = field === "rate" ? numericValue : Number(updatedItem.rate) || 0;
+      const quantity = field === "quantity" ? value : Number(updatedItem.quantity) || 0;
+      const rate = field === "rate" ? value : Number(updatedItem.rate) || 0;
       updatedItem.total = quantity * rate;
     }
     newLineItems[index] = updatedItem;
@@ -176,7 +170,7 @@ export function CreateEditBill() {
     if (!customerId) {
       const customer = await ApiRequest("/api/customers", "POST", {
         name: customerName,
-        email: customerEmail,
+        email: customerEmail ? customerEmail : undefined,
         number: customerPhone,
         address: customerAddress,
       });
@@ -193,7 +187,7 @@ export function CreateEditBill() {
         id: customerId || newCustomerId,
         number: customerPhone,
         name: customerName,
-        email: customerEmail,
+        email: customerEmail ? customerEmail : undefined,
         address: customerAddress,
       },
       billNumber: billNumber.toString(),

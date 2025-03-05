@@ -36,7 +36,7 @@ export function BikeZoneBill({ companyInfo, billData }) {
     <div className="min-h-screen bg-gray-50 print:bg-white">
       <div className="print:hidden fixed top-0 left-0 right-0 bg-white shadow-sm print:shadow-none z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl ml-12 font-semibold text-black-600">Bill Number {billData.billNumber}</h1>
+          <h1 className="text-xl ml-12 font-semibold text-black">Bill Number {billData.billNumber}</h1>
           <div className="flex items-center space-x-4">
             <button
               onClick={handleDownloadPDF}
@@ -64,13 +64,13 @@ export function BikeZoneBill({ companyInfo, billData }) {
           <div className="flex items-center space-x-4">
             {companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" className="w-16 h-16 object-contain" />}
             <div>
-              <h2 className="text-2xl text-black-600 font-bold">{companyInfo.name}</h2>
+              <h2 className="text-2xl text-black font-bold">{companyInfo.name}</h2>
               <p className="text-black">{companyInfo.address}</p>
               <p className="text-black">{companyInfo.city}</p>
             </div>
           </div>
           <div className="text-right">
-            <h1 className="text-4xl text-black-600 font-bold mb-4">INVOICE</h1>
+            <h1 className="text-4xl text-black font-bold mb-4">INVOICE</h1>
             <p className="text-black">Bill Number #{billData.billNumber}</p>
             <p className="text-black">Date: {new Date(billData.date).toLocaleDateString()}</p>
           </div>
@@ -78,7 +78,7 @@ export function BikeZoneBill({ companyInfo, billData }) {
 
         <div className="mb-10 print:mb-3 flex justify-between items-center">
           <div>
-            <h3 className="text-lg text-black-600 font-semibold mb-2">Bill To:</h3>
+            <h3 className="text-lg text-black font-semibold mb-2">Bill To:</h3>
             <div className="border-l-4 border-black-500 pl-4">
               <p className="font-semibold text-black">{billData.customer.name}</p>
               <p className="text-black">Customer Number: {billData.customer.number}</p>
@@ -108,13 +108,13 @@ export function BikeZoneBill({ companyInfo, billData }) {
         <table className="w-full mb-8 print:mb-5">
           <thead>
             <tr className="text-left">
-              <th className="py-2 font-semibold text-black-600">Item Description</th>
-              <th className="py-2 font-semibold text-center text-black-600">Quantity</th>
-              <th className="py-2 font-semibold text-center text-black-600">Rate</th>
-              <th className="py-2 font-semibold text-right text-black-600">Amount</th>
+              <th className="py-2 font-semibold text-black">Item Description</th>
+              <th className="py-2 font-semibold text-center text-black">Quantity</th>
+              <th className="py-2 font-semibold text-center text-black">Rate</th>
+              <th className="py-2 font-semibold text-right text-black">Amount</th>
             </tr>
           </thead>
-          <tbody className="border-t border-b border-black-600">
+          <tbody className="border-t border-b border-black">
             {computedItems.map((item, index) => (
               <tr key={index} className=" text-black text-sm ">
                 <td className="py-2 print:py-1">{item.itemName}</td>
@@ -146,7 +146,7 @@ export function BikeZoneBill({ companyInfo, billData }) {
         </div>
         <div className="mt-5 text-black">
           Total amount in words -{" "}
-          <span className="font-extrabold text-black-600">{GetNumberToWords(grandTotal.toFixed(0))}</span>
+          <span className="font-extrabold text-black">{GetNumberToWords(grandTotal.toFixed(0))}</span>
         </div>
         <div className="mt-5 print:mt-1.5 mr-10 text-black text-right">Signature</div>
 
