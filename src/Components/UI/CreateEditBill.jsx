@@ -49,6 +49,9 @@ export function CreateEditBill() {
             );
             setTax(bill.tax);
             setDiscount(bill.discount);
+            let metavalue = {};
+            bill.metaData.map((meta) => (metavalue = { ...metavalue, [meta.name]: meta.value }));
+            setMetaFieldVlaues(metavalue);
           } else {
             setError("Failed to load bill data");
           }
