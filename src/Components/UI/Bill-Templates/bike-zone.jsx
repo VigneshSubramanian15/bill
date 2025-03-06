@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Download, Printer, SquareCheckIcon, Square } from "lucide-react";
 import GetNumberToWords from "../../Util/numberToWords";
-import jsPDF from "jspdf";
+import generateInvoicePdf from "./InvoiceGenerator";
 
 export function BikeZoneBill({ companyInfo, billData }) {
   const divRef = useRef(null);
@@ -19,19 +19,6 @@ export function BikeZoneBill({ companyInfo, billData }) {
     window.print();
   };
 
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF("p", "pt", "a4");
-
-    doc.html(divRef.current, {
-      callback: function (doc) {
-        doc.save(`Bill-${billData.billNumber}.pdf`);
-      },
-      margin: [10, 10, 10, 10],
-      autoPaging: "text",
-      html2canvas: { scale: 0.6 }, // adjust scaling as needed to fit content
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 print:bg-white">
       <div className="print:hidden fixed top-0 left-0 right-0 bg-white shadow-sm print:shadow-none z-50">
@@ -39,7 +26,7 @@ export function BikeZoneBill({ companyInfo, billData }) {
           <h1 className="text-xl ml-12 font-semibold text-black">Bill Number {billData.billNumber}</h1>
           <div className="flex items-center space-x-4">
             <button
-              onClick={handleDownloadPDF}
+              onClick={() => generateInvoicePdf(companyInfo, billData)}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               <Download size={20} className="mr-2" />
@@ -58,7 +45,7 @@ export function BikeZoneBill({ companyInfo, billData }) {
       <div className="mt-20 print:hidden" />
       <div
         ref={divRef}
-        className="max-w-4xl mx-auto bg-white shadow-sm ml-12 px-8 pt-4 print:m-4 py-0 print:p-0 print:pt-0 print:my-0 print:shadow-none"
+        className="max-w-4xl mx-auto bg-white shadow-sm px-8 pt-4 print:m-4 py-0 print:p-0 print:pt-0 print:my-0 print:shadow-none"
       >
         <div className="flex justify-between items-start mb-4 print:mb-3">
           <div className="flex items-center space-x-4">
