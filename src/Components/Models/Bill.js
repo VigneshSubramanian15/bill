@@ -39,7 +39,7 @@ const BillSchema = new mongoose.Schema(
             },
             address: {
                 type: String,
-                required: [true, 'Customer address is required']
+                // required: [true, 'Customer address is required']
             },
         },
         billNumber: {

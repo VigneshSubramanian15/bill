@@ -32,6 +32,13 @@ export function BikeZoneBill({ companyInfo, billData }) {
               <Download size={20} className="mr-2" />
               Download PDF
             </button>
+            {/* <button
+              onClick={() => generateInvoicePdf(companyInfo, billData, true)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <Download size={20} className="mr-2" />
+              Whatsapp
+            </button> */}
             <button
               onClick={handlePrint}
               className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-black-700"
@@ -52,13 +59,14 @@ export function BikeZoneBill({ companyInfo, billData }) {
             {companyInfo.logo && <img src={companyInfo.logo} alt="Company Logo" className="w-16 h-16 object-contain" />}
             <div>
               <h2 className="text-2xl text-black font-bold">{companyInfo.name}</h2>
-              <p className="text-black">{companyInfo.address}</p>
+              <p className="text-black" dangerouslySetInnerHTML={{ __html: companyInfo.address.replace(/\\n/g, '<br>') }} />
               <p className="text-black">{companyInfo.city}</p>
             </div>
           </div>
           <div className="text-right">
-            <h1 className="text-4xl text-black font-bold mb-4">INVOICE</h1>
-            <p className="text-black">Bill Number #{billData.billNumber}</p>
+            {/* <h1 className="text-4xl text-black font-bold mb-4">INVOICE</h1> */}
+            <h1 className="text-4xl text-black font-bold mb-4">Bill Number #{billData.billNumber}</h1>
+            {/* <p className="text-black">Bill Number #{billData.billNumber}</p> */}
             <p className="text-black">Date: {new Date(billData.date).toLocaleDateString()}</p>
           </div>
         </div>

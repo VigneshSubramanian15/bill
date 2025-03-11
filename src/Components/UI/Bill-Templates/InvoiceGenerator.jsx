@@ -1,8 +1,9 @@
+// InvoiceGenerator.js
 import { jsPDF } from "jspdf";
 import GetNumberToWords from "@/Components/Util/numberToWords";
 import "jspdf-autotable";
 
-export default function generateInvoicePdf(companyInfo, billData) {
+export default function generateInvoicePdf(companyInfo, billData, sendToWhatsApp = false) {
   const doc = new jsPDF();
 
   // Calculate items and amounts
@@ -23,7 +24,7 @@ export default function generateInvoicePdf(companyInfo, billData) {
   const invoiceData = {
     company: {
       name: companyInfo.name,
-      addressLine1: companyInfo.address,
+      addressLine1: companyInfo.address, // May contain multiple lines separated by "\n"
       addressLine2: companyInfo.city,
       contact: companyInfo.number,
     },
@@ -61,55 +62,56 @@ export default function generateInvoicePdf(companyInfo, billData) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
 
-  // Company logo placeholder
-  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-  doc.rect(margin, margin, 40, 15, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
-  doc.text(invoiceData.company.name.substring(0, 5).toUpperCase(), margin + 20, margin + 8, { align: "center" });
-
-  // Invoice title
+  // Invoice title (top right)
   doc.setFontSize(24);
   doc.setTextColor(...primaryColor);
   doc.setFont("helvetica", "bold");
-  doc.text("INVOICE", pageWidth - margin, margin + 8, { align: "right" });
+  doc.text(`Invoice Number: ${invoiceData.invoice.number}`, pageWidth - margin, margin, { align: "right" });
 
-  // Company details
+  // Company details (top left)
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text(invoiceData.company.name, margin, margin + 25);
+  doc.text(invoiceData.company.name, margin, margin + 10);
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(invoiceData.company.addressLine1, margin, margin + 30);
-  doc.text(invoiceData.company.addressLine2, margin, margin + 35);
-  doc.text(invoiceData.company.contact, margin, margin + 40);
+  // Handle multi-line for addressLine1 by splitting at "\n"
+  const addressLines = invoiceData.company.addressLine1.split("\n");
+  let currentY = margin + 15;
+  addressLines.forEach((line) => {
+    doc.text(line.trim(), margin, currentY);
+    currentY += 5; // Adjust line spacing as needed
+  });
+  // Print addressLine2 and contact after the multi-line address
+  doc.text(invoiceData.company.addressLine2, margin, currentY);
+  currentY += 5;
+  doc.text(invoiceData.company.contact, margin, currentY);
 
-  // Invoice details
+  // Invoice details (top right, below invoice title)
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("Invoice Details", pageWidth - margin - 60, margin + 25);
+  doc.text("Invoice Details", pageWidth - margin - 60, margin + 10);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(`Invoice Number: ${invoiceData.invoice.number}`, pageWidth - margin - 60, margin + 30);
-  doc.text(`Date: ${invoiceData.invoice.date}`, pageWidth - margin - 60, margin + 35);
+  doc.text(`Date: ${invoiceData.invoice.date}`, pageWidth - margin - 60, margin + 15);
 
   // Separator line
   doc.setDrawColor(220, 220, 220);
-  doc.line(margin, margin + 45, pageWidth - margin, margin + 45);
+  doc.line(margin, currentY + 5, pageWidth - margin, currentY + 5);
 
   // Customer details
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("Bill To:", margin, margin + 55);
+  doc.text("Bill To:", margin, currentY + 15);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(invoiceData.customer.name, margin, margin + 60);
-  doc.text(invoiceData.customer.addressLine1, margin, margin + 65);
-  doc.text(invoiceData.customer.contact, margin, margin + 70);
+  doc.text(invoiceData.customer.name, margin, currentY + 20);
+  doc.text(invoiceData.customer.addressLine1, margin, currentY + 25);
+  doc.text(invoiceData.customer.contact, margin, currentY + 30);
 
   // Items table
-  const tableStartY = margin + 80;
+  const tableStartY = currentY + 40;
   const tableColumn = ["Description", "Quantity", "Rate", "Amount"];
   const tableRows = invoiceData.items.map((item) => [
     item.description,
@@ -123,16 +125,16 @@ export default function generateInvoicePdf(companyInfo, billData) {
     head: [tableColumn],
     body: tableRows,
     headStyles: {
-      fillColor: [primaryColor[0], primaryColor[1], primaryColor[2]],
+      fillColor: primaryColor,
       textColor: [255, 255, 255],
       fontStyle: "bold",
-      halign: "center", // Center align all headers
+      halign: "center",
     },
     columnStyles: {
-      0: { cellWidth: "auto", halign: "left" }, // Description - left aligned
-      1: { cellWidth: 20, halign: "center" }, // Quantity - center aligned
-      2: { cellWidth: 30, halign: "center" }, // Rate - right aligned
-      3: { cellWidth: 30, halign: "center" }, // Amount - right aligned
+      0: { cellWidth: "auto", halign: "left" },
+      1: { cellWidth: 20, halign: "center" },
+      2: { cellWidth: 30, halign: "center" },
+      3: { cellWidth: 30, halign: "center" },
     },
     styles: {
       fontSize: 9,
@@ -172,11 +174,33 @@ export default function generateInvoicePdf(companyInfo, billData) {
   doc.setFont("helvetica", "bold");
   doc.text(invoiceData.signature, pageWidth - margin - 30, finalY + 65, { align: "center" });
 
-  // Footer
   doc.setFontSize(8);
   doc.setTextColor(...secondaryColor);
   doc.text(invoiceData.footer, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
 
-  // Save PDF
-  doc.save(`Invoice_${invoiceData.invoice.number}.pdf`);
+  if (sendToWhatsApp) {
+    const pdfBlob = doc.output("blob");
+    const fileName = `Invoice_${invoiceData.invoice.number}.pdf`;
+    const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator
+        .share({
+          files: [file],
+          title: `Invoice ${invoiceData.invoice.number}`,
+          text: `Please find attached invoice ${invoiceData.invoice.number}.`,
+        })
+        .then(() => {
+          console.log("Share was successful.");
+        })
+        .catch((error) => {
+          console.error("Error sharing:", error);
+        });
+    } else {
+      console.error("File sharing is not supported on this device/browser.");
+      doc.save(fileName);
+    }
+  } else {
+    doc.save(`Invoice_${invoiceData.invoice.number}.pdf`);
+  }
 }
