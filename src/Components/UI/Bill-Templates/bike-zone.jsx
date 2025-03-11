@@ -32,13 +32,13 @@ export function BikeZoneBill({ companyInfo, billData }) {
               <Download size={20} className="mr-2" />
               Download PDF
             </button>
-            {/* <button
+            <button
               onClick={() => generateInvoicePdf(companyInfo, billData, true)}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               <Download size={20} className="mr-2" />
               Whatsapp
-            </button> */}
+            </button>
             <button
               onClick={handlePrint}
               className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-black-700"

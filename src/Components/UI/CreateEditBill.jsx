@@ -7,6 +7,7 @@ export function CreateEditBill() {
   const router = useRouter();
   const isCreateMode = router?.query?.id ? true : false;
   const [billNumber, setBillNumber] = useState();
+  const [billLoading, setbillLoading] = useState(false)
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [customerInfo, setCustomerInfo] = useState("");
   const [customerFiltered, setCustomerFiltered] = useState([]);
@@ -162,12 +163,15 @@ export function CreateEditBill() {
   const handleSave = async () => {
     setError("");
     setSuccess("");
-
+    if (billLoading) {
+      return;
+    }
     if (!validateForm()) {
       return;
     }
 
     if (!customerId) {
+      setbillLoading(true);
       const customer = await ApiRequest("/api/customers", "POST", {
         name: customerName,
         email: customerEmail ? customerEmail : undefined,
@@ -215,9 +219,11 @@ export function CreateEditBill() {
       }
       console.log({ billId });
       setSuccess(!isCreateMode ? "Bill created successfully" : "Bill updated successfully");
+      setbillLoading(false)
       router.push(`/bill/${billId.data}`);
     } catch (err) {
       setError(err.message);
+      setbillLoading(false)
       console.error("Error saving bill:", err);
     }
   };
@@ -481,13 +487,19 @@ export function CreateEditBill() {
         </div>
 
         <div className="flex justify-end">
-          <button
+          {!isCreateMode ? <button
             onClick={handleSave}
             className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
             <Save size={20} className="mr-2" />
-            Save Bill
-          </button>
+            {billLoading ? "Creating Bill..." : "Create Bill"}
+          </button> : <button
+            onClick={handleSave}
+            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            <Save size={20} className="mr-2" />
+            {billLoading ? "Updating Bill..." : "Update Bill"}
+          </button>}
         </div>
       </div>
     </div>

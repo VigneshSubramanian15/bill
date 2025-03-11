@@ -3,7 +3,7 @@ import { jsPDF } from "jspdf";
 import GetNumberToWords from "@/Components/Util/numberToWords";
 import "jspdf-autotable";
 
-export default function generateInvoicePdf(companyInfo, billData, sendToWhatsApp = false) {
+export default function generateInvoicePdf(companyInfo, billData, sendToWhatsApp = false, returnAsBuffer = false) {
   const doc = new jsPDF();
 
   // Calculate items and amounts
@@ -200,6 +200,8 @@ export default function generateInvoicePdf(companyInfo, billData, sendToWhatsApp
       console.error("File sharing is not supported on this device/browser.");
       doc.save(fileName);
     }
+  } else if (returnAsBuffer) {
+    return doc.output("arraybuffer");
   } else {
     doc.save(`Invoice_${invoiceData.invoice.number}.pdf`);
   }

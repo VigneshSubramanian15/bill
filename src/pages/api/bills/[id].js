@@ -9,7 +9,7 @@ const billValidationSchema = Joi.object({
         name: Joi.string().required(),
         number: Joi.string().required(),
         email: Joi.string().email(),
-        address: Joi.string(),
+        address: Joi.string().optional().allow(""),
     }).required(),
     billNumber: Joi.string().required(),
     date: Joi.date().required(),
