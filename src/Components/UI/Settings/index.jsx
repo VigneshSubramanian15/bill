@@ -1,16 +1,18 @@
 import React, { useState } from "react";
-import { Building2, Users, Palette, Database } from "lucide-react";
+import { Building2, Users, Palette, Database, Fingerprint } from "lucide-react";
 import Company from "./Company";
 import User from "./Users";
 import Appearance from "./Appearance";
 import { cn } from "@/Components/Util/utils";
 import MetaField from "./MetaField";
+import PasskeyRegister from "./PasskeyRegister";
 
 const tabs = [
   { id: "company", label: "Company", icon: Building2 },
   { id: "users", label: "Users", icon: Users },
   { id: "meta", label: "Meta Fields", icon: Database },
   { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "authentication", label: "Authentication", icon: Fingerprint },
 ];
 
 export function Settings() {
@@ -25,7 +27,7 @@ export function Settings() {
       </div>
 
       <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
+        <nav className="flex space-x-8 overflow-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -49,6 +51,7 @@ export function Settings() {
         {activeTab === "users" && <User />}
         {activeTab === "appearance" && <Appearance accentColor={accentColor} setAccentColor={setAccentColor} />}
         {activeTab === "meta" && <MetaField />}
+        {activeTab === "authentication" && <PasskeyRegister />}
       </div>
     </div>
   );

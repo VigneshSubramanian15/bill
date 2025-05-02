@@ -40,6 +40,14 @@ const UserSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
+        passkeyCredentials: [
+            {
+                credentialID: { type: String },
+                publicKey: { type: String },
+                counter: { type: Number },
+                transports: { type: [String] },
+            }
+        ],
     },
     { timestamps: true }
 );

@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^13.1.0",
+    "@simplewebauthn/server": "^13.1.1",
     "bcryptjs": "^3.0.1",
     "crypto-js": "^4.2.0",
     "html2canvas": "^1.4.1",
+    "iron-session": "^8.0.4",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.1",

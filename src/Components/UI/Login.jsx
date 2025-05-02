@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ApiRequest } from "@/Components/Util/apiRequest";
 import { encryptData } from "@/Components/Util/crypto";
 import { useRouter } from "next/router";
+import PasskeyLogin from "./PasskeyLogin";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -98,14 +99,16 @@ export function Login() {
             >
               Sign in
             </button>
+            <hr className="text-gray-300" />
+            <PasskeyLogin />
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          {/* <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{" "}
             <Link href="/signup" className="text-green-600 hover:text-green-500 font-medium">
               Sign up
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>
