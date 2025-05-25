@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Minus, Save, Square, CheckSquare2Icon } from "lucide-react";
+import { Save } from "lucide-react";
 import { useRouter } from "next/router";
-import { ApiRequest } from "../Util/apiRequest";
+import { ApiRequest } from "../../Util/apiRequest";
+import BillMetsField from "./BillMetsField";
+import LineItemsTable from "./LineItemsTable";
+import Summary from "./Summary";
 
 export function CreateEditBill() {
   const router = useRouter();
@@ -17,7 +20,7 @@ export function CreateEditBill() {
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [MetaFields, setMetaFields] = useState([]);
-  const [MetaFieldVlaues, setMetaFieldVlaues] = useState([]);
+  const [MetaFieldVlues, setMetaFieldVlues] = useState([]);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [lineItems, setLineItems] = useState([
     { id: "1", name: "", quantity: 1, rate: "", total: 0 },
@@ -60,7 +63,7 @@ export function CreateEditBill() {
                   [meta.name]: meta.value,
                 }),
             );
-            setMetaFieldVlaues(metavalue);
+            setMetaFieldVlues(metavalue);
           } else {
             setError("Failed to load bill data");
           }
@@ -79,11 +82,17 @@ export function CreateEditBill() {
         Select: 4,
         Boolean: 5,
       };
-      const meta = [
-        ...data.data.billMetaField,
-        ...data.data.customerMetaField,
-      ].sort((a, b) => order[a.dataType] - order[b.dataType]);
-      console.log({ meta });
+      const meta = {
+        bill: data.data.billMetaField.sort(
+          (a, b) => order[a.dataType] - order[b.dataType],
+        ),
+        customer: data.data.customerMetaField.sort(
+          (a, b) => order[a.dataType] - order[b.dataType],
+        ),
+        lineItem: data.data.lineItemMetaField.sort(
+          (a, b) => order[a.dataType] - order[b.dataType],
+        ),
+      };
       setMetaFields(meta);
     });
   }, [isCreateMode, router.query.billNumber]);
@@ -111,16 +120,26 @@ export function CreateEditBill() {
     setShowCustomerDropdown(false);
   };
 
-  const handleLineItemChange = (index, field, value) => {
+  const handleLineItemChange = (index, field, value, isMetaData) => {
+    console.log("handleLineItemChange", { index, field, value, isMetaData });
     const newLineItems = [...lineItems];
-    const updatedItem = { ...newLineItems[index], [field]: value };
-    if (field === "quantity" || field === "rate") {
-      const quantity =
-        field === "quantity" ? value : Number(updatedItem.quantity) || 0;
-      const rate = field === "rate" ? value : Number(updatedItem.rate) || 0;
-      updatedItem.total = quantity * rate;
+    if (isMetaData) {
+      const updatedItem = {
+        ...newLineItems[index],
+        metaData: { ...newLineItems[index].metaData, [field]: value },
+      };
+      newLineItems[index] = updatedItem;
+    } else {
+      const updatedItem = { ...newLineItems[index], [field]: value };
+      if (field === "quantity" || field === "rate") {
+        const quantity =
+          field === "quantity" ? value : Number(updatedItem.quantity) || 0;
+        const rate = field === "rate" ? value : Number(updatedItem.rate) || 0;
+        updatedItem.total = quantity * rate;
+      }
+      newLineItems[index] = updatedItem;
     }
-    newLineItems[index] = updatedItem;
+
     setLineItems(newLineItems);
   };
 
@@ -146,7 +165,15 @@ export function CreateEditBill() {
   const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
   const taxAmount = (subtotal * (Number(tax) || 0)) / 100;
   const discountAmount = (subtotal * (Number(discount) || 0)) / 100;
-  const grandTotal = subtotal + taxAmount - discountAmount;
+  const metaFieldsToAdd = MetaFields?.bill?.filter((meta) => meta.addToTotal);
+  const metaTotal = metaFieldsToAdd?.reduce((sum, meta) => {
+    const value = MetaFieldVlues[meta.name];
+    if (meta.dataType === "Number" && value) {
+      return sum + Number(value);
+    }
+    return sum;
+  }, 0);
+  const grandTotal = subtotal + taxAmount + metaTotal - discountAmount;
 
   const validateForm = () => {
     if (!customerName || !customerPhone) {
@@ -176,8 +203,10 @@ export function CreateEditBill() {
   };
 
   const handleSave = async () => {
+    setbillLoading(false);
     setError("");
     setSuccess("");
+
     if (billLoading) {
       return;
     }
@@ -201,6 +230,28 @@ export function CreateEditBill() {
   };
 
   const createBill = async (newCustomerId) => {
+    const BillMetaData = [];
+    Object.keys(MetaFieldVlues).forEach((key) => {
+      const metaInfo = MetaFields.bill.find((m) => m.name === key);
+      if (!metaInfo) return [];
+      return BillMetaData.push({
+        ...metaInfo,
+        value: MetaFieldVlues[key],
+        type: "bill",
+      });
+    });
+    const customerMetaData = [];
+    Object.keys(MetaFieldVlues).forEach((key) => {
+      const metaInfo = MetaFields.customer.find((m) => m.name === key);
+      if (!metaInfo) return [];
+      return customerMetaData.push({
+        ...metaInfo,
+        value: MetaFieldVlues[key],
+        type: "customer",
+      });
+    });
+    const MetaData = [...BillMetaData, ...customerMetaData];
+    console.log({ MetaData, MetaFields, MetaFieldVlues });
     const billData = {
       customer: {
         id: customerId || newCustomerId,
@@ -215,16 +266,19 @@ export function CreateEditBill() {
         itemName: item.name,
         itemQty: item.quantity,
         itemPrice: item.rate,
+        metaData: Object.keys(item.metaData || {}).map((key) => ({
+          name: key,
+          value: item.metaData[key],
+          label: MetaFields.lineItem.find((m) => m.name === key)?.label || key,
+        })),
       })),
       total: grandTotal.toFixed(2),
       tax,
       discount,
-      metaData:
-        Object.keys(MetaFieldVlaues).map((key) => {
-          const metaInfo = MetaFields.find((m) => m.name === key);
-          return { ...metaInfo, value: MetaFieldVlaues[key] };
-        }) || [],
+      metaData: MetaData || [],
     };
+    setbillLoading(false);
+    console.log("Bill Data to be saved:", billData);
     try {
       let billId = "";
       if (!isCreateMode) {
@@ -359,226 +413,31 @@ export function CreateEditBill() {
           </div>
         </div>
 
-        {/* Meta Fields */}
-        <hr className="!text-gray-300" />
-        <div className="flex justify-center items-center flex-wrap">
-          {MetaFields?.map((meta) =>
-            meta.dataType === "String" ? (
-              <div className="w-full md:w-1/2 px-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {meta.label}
-                </label>
-                <input
-                  type="email"
-                  value={MetaFieldVlaues[meta.name]}
-                  onChange={(e) =>
-                    setMetaFieldVlaues((m) => ({
-                      ...m,
-                      [meta.name]: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder={meta.label}
-                />
-              </div>
-            ) : (
-              <div className="w-1/2 mt-3 md:w-1/4 px-3">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={MetaFieldVlaues[meta.name]}
-                    onChange={(e) =>
-                      setMetaFieldVlaues((m) => ({
-                        ...m,
-                        [meta.name]: e.target.checked,
-                      }))
-                    }
-                    className="hidden peer"
-                  />
-                  <span>
-                    {MetaFieldVlaues[meta.name] ? (
-                      <CheckSquare2Icon size={20} />
-                    ) : (
-                      <Square size={20} />
-                    )}
-                  </span>
-                  <span className="ml-2 text-sm text-gray-700">
-                    {meta.label}
-                  </span>
-                </label>
-              </div>
-            ),
-          )}
-        </div>
-        <hr className="!text-gray-300" />
+        <BillMetsField
+          MetaFields={MetaFields}
+          MetaFieldVlues={MetaFieldVlues}
+          setMetaFieldVlues={setMetaFieldVlues}
+        />
 
-        {/* Meta Fields */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium text-gray-900">Line Items</h3>
-            <button
-              onClick={addLineItem}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              <Plus size={16} className="mr-1" />
-              Add Item
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Item
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Quantity
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rate
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {lineItems.map((item, index) => (
-                  <tr key={item.id}>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        value={item.name}
-                        onChange={(e) =>
-                          handleLineItemChange(index, "name", e.target.value)
-                        }
-                        style={{ minWidth: 220 }}
-                        className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Item name"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        style={{ minWidth: 70 }}
-                        onChange={(e) =>
-                          handleLineItemChange(
-                            index,
-                            "quantity",
-                            e.target.value.replace(/^0+/, "") || 0,
-                          )
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        min="1"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="number"
-                        value={item.rate}
-                        style={{ minWidth: 100 }}
-                        onChange={(e) =>
-                          handleLineItemChange(
-                            index,
-                            "rate",
-                            e.target.value.replace(/^0+/, "") || 0,
-                          )
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        min="0"
-                        step="0.01"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <span className="text-gray-900 font-medium">
-                        ₹{item.total.toFixed(2)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2">
-                      <button
-                        onClick={() => removeLineItem(index)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Minus size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-300 pt-6">
-          <div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tax (%)
-              </label>
-              <input
-                type="number"
-                value={tax}
-                onChange={(e) => setTax(e.target.value.replace(/^0+/, "") || 0)}
-                style={{ maxWidth: 250 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Tax (%)"
-                min="0"
-                max="100"
-                step="1"
-              />
-            </div>
-            <div className="pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Discount (%)
-              </label>
-              <input
-                type="number"
-                value={discount}
-                style={{ maxWidth: 250 }}
-                onChange={(e) =>
-                  setDiscount(e.target.value.replace(/^0+/, "") || 0)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Discount (%)"
-                min="0"
-                max="100"
-                step="1"
-              />
-            </div>
-          </div>
-          <div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Subtotal:</span>
-                <span className="text-gray-900 font-medium">
-                  ₹{subtotal.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Tax:</span>
-                <span className="text-gray-900 font-medium">
-                  ₹{taxAmount.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Discount:</span>
-                <span className="text-gray-900 font-medium">
-                  ₹{discountAmount.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Grand Total:</span>
-                <span className="text-gray-900 font-medium">
-                  ₹{grandTotal.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <LineItemsTable
+          lineItems={lineItems}
+          MetaFields={MetaFields}
+          handleLineItemChange={handleLineItemChange}
+          removeLineItem={removeLineItem}
+          addLineItem={addLineItem}
+        />
+        <Summary
+          subtotal={subtotal}
+          tax={tax}
+          setTax={setTax}
+          setDiscount={setDiscount}
+          discount={discount}
+          taxAmount={taxAmount}
+          discountAmount={discountAmount}
+          grandTotal={grandTotal}
+          metaFields={MetaFields.bill}
+          metaFieldValues={MetaFieldVlues}
+        />
         <div className="flex justify-end">
           {!isCreateMode ? (
             <button

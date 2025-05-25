@@ -19,6 +19,18 @@ const billValidationSchema = Joi.object({
         itemName: Joi.string().required(),
         itemQty: Joi.number().required(),
         itemPrice: Joi.number().required(),
+        metaData: Joi.array()
+          .items(
+            Joi.object({
+              name: Joi.string().required(),
+              label: Joi.string().required(),
+              value: Joi.alternatives()
+                .try(Joi.string(), Joi.number(), Joi.boolean())
+                .required(),
+            }),
+          )
+          .optional()
+          .default([]),
       }),
     )
     .min(1)

@@ -4,12 +4,12 @@ const BillSchema = new mongoose.Schema(
   {
     companyId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Company", // assuming you have a Customer model
+      ref: "Company",
       required: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // assuming you have a Customer model
+      ref: "User",
       required: true,
     },
     date: {
@@ -23,7 +23,7 @@ const BillSchema = new mongoose.Schema(
     customer: {
       id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Customer", // assuming you have a Customer model
+        ref: "Customer",
         required: true,
       },
       name: {
@@ -45,7 +45,6 @@ const BillSchema = new mongoose.Schema(
     billNumber: {
       type: String,
       required: [true, "Bill number is required"],
-      unique: true,
       trim: true,
     },
     items: [
@@ -58,6 +57,31 @@ const BillSchema = new mongoose.Schema(
           type: Number,
           required: [true, "Item quantity is required"],
         },
+        metaData: [
+          {
+            name: {
+              type: String,
+              required: [true, "Meta field name is required"],
+            },
+            label: {
+              type: String,
+              required: [true, "Meta field label is required"],
+            },
+            value: {
+              type: mongoose.Schema.Types.Mixed,
+              required: [true, "Meta field value is required"],
+            },
+            showInBill: {
+              type: Boolean,
+              default: false,
+            },
+            dataType: {
+              type: String,
+              enum: ["String", "Number", "Boolean"],
+              default: "String",
+            },
+          },
+        ],
         itemPrice: {
           type: Number,
           required: [true, "Item price is required"],

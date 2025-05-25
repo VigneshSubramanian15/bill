@@ -29,6 +29,19 @@ const customerMetaFieldSchema = Joi.object({
   displayInPrintBill: Joi.boolean().required(),
 });
 
+const lineItemMetaFieldSchema = Joi.object({
+  name: Joi.string().trim().required(),
+  label: Joi.string().trim().required(),
+  isRequired: Joi.boolean().required(),
+  dataType: Joi.string()
+    .trim()
+    .valid("String", "Number", "Boolean", "MultiSelect", "Select")
+    .required(),
+  options: Joi.array().items(Joi.string().trim()),
+  showInBill: Joi.boolean().required(),
+  displayInPrintBill: Joi.boolean().required(),
+});
+
 export default async function handler(req, res) {
   await dbConnect();
   const { companyId } = getJWTTokenData(req);
@@ -38,7 +51,7 @@ export default async function handler(req, res) {
     case "GET":
       try {
         const company = await Company.findById(companyId).select(
-          "billMetaField customerMetaField",
+          "billMetaField customerMetaField lineItemMetaField",
         );
         if (!company) {
           return ErrorResponse(res, "Company not found", 404);
@@ -73,9 +86,20 @@ export default async function handler(req, res) {
             );
           }
           validatedData = value;
-        } else {
+        } else if (metaType === "customerMetaField") {
           const { error, value } = customerMetaFieldSchema.validate(metaData);
           if (error) {
+            return ErrorResponse(
+              res,
+              error.details.map((d) => d.message),
+              400,
+            );
+          }
+          validatedData = value;
+        } else if (metaType === "lineItemMetaField") {
+          const { error, value } = lineItemMetaFieldSchema.validate(metaData);
+          if (error) {
+            console.log({ error });
             return ErrorResponse(
               res,
               error.details.map((d) => d.message),
@@ -105,7 +129,9 @@ export default async function handler(req, res) {
         const { metaType, _id, ...metaData } = req.body;
         if (
           !metaType ||
-          (metaType !== "billMetaField" && metaType !== "customerMetaField")
+          (metaType !== "billMetaField" &&
+            metaType !== "customerMetaField" &&
+            metaType !== "lineItemMetaField")
         ) {
           return ErrorResponse(res, "Invalid metaType provided", 400);
         }
@@ -128,8 +154,18 @@ export default async function handler(req, res) {
             );
           }
           validatedData = value;
-        } else {
+        } else if (metaType === "customerMetaField") {
           const { error, value } = customerMetaFieldSchema.validate(metaData);
+          if (error) {
+            return ErrorResponse(
+              res,
+              error.details.map((d) => d.message),
+              400,
+            );
+          }
+          validatedData = value;
+        } else if (metaType === "lineItemMetaField") {
+          const { error, value } = lineItemMetaFieldSchema.validate(metaData);
           if (error) {
             return ErrorResponse(
               res,
@@ -177,7 +213,9 @@ export default async function handler(req, res) {
         const { metaType, _id } = req.body;
         if (
           !metaType ||
-          (metaType !== "billMetaField" && metaType !== "customerMetaField")
+          (metaType !== "billMetaField" &&
+            metaType !== "customerMetaField" &&
+            metaType !== "lineItemMetaField")
         ) {
           return ErrorResponse(res, "Invalid metaType provided", 400);
         }

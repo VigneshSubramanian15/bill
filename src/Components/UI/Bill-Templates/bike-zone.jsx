@@ -6,14 +6,27 @@ import generateInvoicePdf from "./InvoiceGenerator";
 export function BikeZoneBill({ companyInfo, billData }) {
   const divRef = useRef(null);
 
-  const computedItems = billData.items.map((item) => ({
-    ...item,
-    total: item.itemQty * item.itemPrice,
-  }));
+  const computedItems = [];
+  const lineItemsMetaField = [];
+  billData.items.forEach((item, i) => {
+    if (i === 0)
+      item.metaData.forEach((meta) => lineItemsMetaField.push(meta.label));
+    computedItems.push({
+      ...item,
+      total: item.itemQty * item.itemPrice,
+    });
+  });
   const subtotal = computedItems.reduce((sum, item) => sum + item.total, 0);
   const taxAmount = (subtotal * (Number(billData.tax) || 0)) / 100;
   const discountAmount = (subtotal * (Number(billData.discount) || 0)) / 100;
-  const grandTotal = subtotal + taxAmount - discountAmount;
+  const metaCalculation = billData.metaData.reduce((acc, meta) => {
+    if (meta.addToTotal) {
+      const value = parseFloat(meta.value) || 0;
+      return acc + value;
+    }
+    return acc;
+  }, 0);
+  const grandTotal = subtotal + taxAmount + metaCalculation - discountAmount;
 
   const handlePrint = () => {
     window.print();
@@ -103,25 +116,27 @@ export function BikeZoneBill({ companyInfo, billData }) {
               <p className="text-black">{billData.customer.address || ""}</p>
             </div>
           </div>
-          {billData.metaData.length && (
+          {billData?.metaData?.length && (
             <div>
-              {billData.metaData.map((meta, idx) =>
-                meta.dataType !== "Boolean" ? (
-                  <p key={idx} className="text-black">
-                    {meta.label}:{" "}
-                    <span className="font-semibold"> {meta.value} </span>
-                  </p>
-                ) : (
-                  <p key={idx} className="text-black flex">
-                    {meta.label}:{" "}
-                    <span
-                      style={{ marginLeft: "7px" }}
-                      className="font-semibold block"
-                    >
-                      {meta.value ? <SquareCheckIcon /> : <Square />}
-                    </span>
-                  </p>
-                ),
+              {billData.metaData.map(
+                (meta, idx) =>
+                  !meta.addToTotal &&
+                  (meta.dataType !== "Boolean" ? (
+                    <p key={idx} className="text-black">
+                      {meta.label}:{" "}
+                      <span className="font-semibold"> {meta.value} </span>
+                    </p>
+                  ) : (
+                    <p key={idx} className="text-black flex">
+                      {meta.label}:{" "}
+                      <span
+                        style={{ marginLeft: "7px" }}
+                        className="font-semibold block"
+                      >
+                        {meta.value ? <SquareCheckIcon /> : <Square />}
+                      </span>
+                    </p>
+                  )),
               )}
             </div>
           )}
@@ -133,6 +148,11 @@ export function BikeZoneBill({ companyInfo, billData }) {
               <th className="py-2 font-semibold text-black">
                 Item Description
               </th>
+              {lineItemsMetaField.map((meta, idx) => (
+                <th key={meta} className="py-2 font-semibold text-black">
+                  {meta}
+                </th>
+              ))}
               <th className="py-2 font-semibold text-center text-black">
                 Quantity
               </th>
@@ -148,6 +168,22 @@ export function BikeZoneBill({ companyInfo, billData }) {
             {computedItems.map((item, index) => (
               <tr key={index} className=" text-black text-sm ">
                 <td className="py-2 print:py-1">{item.itemName}</td>
+                <td className="py-2 print:py-1">{item.itemName}</td>
+                {item.metaData.map((meta, idx) => (
+                  <td key={idx} className="py-2 print:py-1">
+                    {meta.dataType === "Boolean" ? (
+                      <span className="flex items-center">
+                        {meta.value ? (
+                          <SquareCheckIcon size={20} />
+                        ) : (
+                          <Square size={20} />
+                        )}
+                      </span>
+                    ) : (
+                      meta.value
+                    )}
+                  </td>
+                ))}
                 <td className="py-2 print:py-1 text-center">{item.itemQty}</td>
                 <td className="py-2 print:py-1 text-center">
                   ₹{Number(item.itemPrice).toFixed(2)}
@@ -173,6 +209,17 @@ export function BikeZoneBill({ companyInfo, billData }) {
               ₹{taxAmount.toFixed(2)}
             </span>
           </div>
+          {billData.metaData.map(
+            (meta) =>
+              meta.addToTotal && (
+                <div key={meta.name} className="flex justify-between">
+                  <span className="text-black">{meta.label}:</span>
+                  <span className="font-medium text-black">
+                    ₹{metaCalculation.toFixed(2)}
+                  </span>
+                </div>
+              ),
+          )}
           <div className="flex justify-between">
             <span className="text-black">Discount ({billData.discount}%):</span>
             <span className="font-medium text-black">

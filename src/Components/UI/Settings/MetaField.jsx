@@ -12,37 +12,6 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/Components/Util/utils";
 import { ApiRequest } from "@/Components/Util/apiRequest";
 
-const mockMetaFields = [
-  {
-    id: 1,
-    name: "taxId",
-    label: "Tax ID",
-    type: "string",
-    entity: "company",
-    required: true,
-    description: "Company tax identification number",
-  },
-  {
-    id: 2,
-    name: "industry",
-    label: "Industry",
-    type: "select",
-    entity: "customer",
-    options: ["Technology", "Healthcare", "Finance", "Retail", "Other"],
-    required: false,
-    description: "Customer industry sector",
-  },
-  {
-    id: 3,
-    name: "terms",
-    label: "Terms & Conditions",
-    type: "markdown",
-    entity: "bill",
-    required: false,
-    description: "Bill-specific terms and conditions",
-  },
-];
-
 const AddMetaFieldModal = ({ onClose, onSave }) => {
   const [formData, setFormData] = useState({
     metaType: "billMetaField",
@@ -66,7 +35,7 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-[#00000077] bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl w-full max-w-md">
         <div className="px-6 py-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -101,6 +70,7 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
             >
               <option value="billMetaField">Bill Meta Field</option>
               <option value="customerMetaField">Customer Meta Field</option>
+              <option value="lineItemMetaField">Line Items Field</option>
             </select>
           </div>
           <div>
@@ -298,7 +268,7 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
 
 export default function MetaField() {
   const [showAddMetaField, setShowAddMetaField] = useState(false);
-  const [metaFields, setMetaFields] = useState(mockMetaFields);
+  const [metaFields, setMetaFields] = useState([]);
 
   const handleDeleteMetaField = (id, metaType) => {
     ApiRequest("/api/settings/metafields", "DELETE", {
@@ -378,6 +348,10 @@ export default function MetaField() {
         ...res.data.customerMetaField.map((field) => ({
           ...field,
           entity: "Customer",
+        })),
+        ...res.data.lineItemMetaField.map((field) => ({
+          ...field,
+          entity: "Line Item",
         })),
       ]);
     });
@@ -472,7 +446,9 @@ export default function MetaField() {
                           field._id,
                           field.entity === "Bill"
                             ? "billMetaField"
-                            : "customerMetaField",
+                            : field.entity === "Customer"
+                              ? "customerMetaField"
+                              : "lineItemMetaField",
                         )
                       }
                       className="text-red-600 hover:text-red-900"

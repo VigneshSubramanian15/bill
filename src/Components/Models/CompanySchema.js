@@ -64,6 +64,20 @@ const CompanySchema = new mongoose.Schema(
         displayInPrintBill: Boolean,
       },
     ],
+    lineItemMetaField: [
+      {
+        name: String,
+        label: String,
+        dataType: {
+          type: String,
+          enum: ["String", "Number", "Boolean", "MultiSelect", "Select"],
+        },
+        options: [String],
+        isRequired: Boolean,
+        showInBill: Boolean,
+        displayInPrintBill: Boolean,
+      },
+    ],
     Tax: {
       GST: Boolean,
       SimpleTax: Boolean,
