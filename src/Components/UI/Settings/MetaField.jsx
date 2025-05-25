@@ -1,4 +1,13 @@
-import { Code, Edit2, FileText, Hash, List, Plus, Trash2, Type } from "lucide-react";
+import {
+  Code,
+  Edit2,
+  FileText,
+  Hash,
+  List,
+  Plus,
+  Trash2,
+  Type,
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { cn } from "@/Components/Util/utils";
 import { ApiRequest } from "@/Components/Util/apiRequest";
@@ -60,15 +69,22 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl w-full max-w-md">
         <div className="px-6 py-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Add Meta Field</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Add Meta Field
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
             ×
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Meta Field Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Meta Field Type
+            </label>
             <select
               value={formData.metaType}
               onChange={(e) =>
@@ -88,11 +104,15 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Field Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Field Name
+            </label>
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
               placeholder="e.g., taxId"
@@ -100,11 +120,15 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Label</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Label
+            </label>
             <input
               type="text"
               value={formData.label}
-              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, label: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
               placeholder="e.g., Tax ID"
@@ -112,10 +136,14 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Data Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Data Type
+            </label>
             <select
               value={formData.dataType}
-              onChange={(e) => setFormData({ ...formData, dataType: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, dataType: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="String">String</option>
@@ -126,18 +154,25 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
             </select>
           </div>
 
-          {(formData.dataType === "MultiSelect" || formData.dataType === "Select") && (
+          {(formData.dataType === "MultiSelect" ||
+            formData.dataType === "Select") && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Options
+              </label>
               <input
                 type="text"
                 value={formData.options}
-                onChange={(e) => setFormData({ ...formData, options: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, options: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Option1, Option2, Option3"
                 required
               />
-              <p className="mt-1 text-sm text-gray-500">Comma-separated list of options</p>
+              <p className="mt-1 text-sm text-gray-500">
+                Comma-separated list of options
+              </p>
             </div>
           )}
 
@@ -148,10 +183,15 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                   type="checkbox"
                   id="addToTotal"
                   checked={formData.addToTotal}
-                  onChange={(e) => setFormData({ ...formData, addToTotal: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, addToTotal: e.target.checked })
+                  }
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
-                <label htmlFor="addToTotal" className="ml-2 block text-sm text-gray-700">
+                <label
+                  htmlFor="addToTotal"
+                  className="ml-2 block text-sm text-gray-700"
+                >
                   Add to Total
                 </label>
               </div>
@@ -161,10 +201,15 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                   type="checkbox"
                   id="showInBill"
                   checked={formData.showInBill}
-                  onChange={(e) => setFormData({ ...formData, showInBill: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, showInBill: e.target.checked })
+                  }
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
-                <label htmlFor="showInBill" className="ml-2 block text-sm text-gray-700">
+                <label
+                  htmlFor="showInBill"
+                  className="ml-2 block text-sm text-gray-700"
+                >
                   show In Bill
                 </label>
               </div>
@@ -175,10 +220,18 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                 type="checkbox"
                 id="displayInPrintBill"
                 checked={formData.displayInPrintBill}
-                onChange={(e) => setFormData({ ...formData, displayInPrintBill: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    displayInPrintBill: e.target.checked,
+                  })
+                }
                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
               />
-              <label htmlFor="displayInPrintBill" className="ml-2 block text-sm text-gray-700">
+              <label
+                htmlFor="displayInPrintBill"
+                className="ml-2 block text-sm text-gray-700"
+              >
                 Display In Print Bill
               </label>
             </div>
@@ -187,10 +240,15 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                 type="checkbox"
                 id="isRequired"
                 checked={formData.isRequired}
-                onChange={(e) => setFormData({ ...formData, isRequired: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, isRequired: e.target.checked })
+                }
                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
               />
-              <label htmlFor="isRequired" className="ml-2 block text-sm text-gray-700">
+              <label
+                htmlFor="isRequired"
+                className="ml-2 block text-sm text-gray-700"
+              >
                 Is Required
               </label>
             </div>
@@ -204,7 +262,10 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
             >
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
               Add Field
             </button>
           </div>
@@ -219,7 +280,10 @@ export default function MetaField() {
   const [metaFields, setMetaFields] = useState(mockMetaFields);
 
   const handleDeleteMetaField = (id, metaType) => {
-    ApiRequest("/api/settings/metafields", "DELETE", { metaType, _id: id }).then(() => fetchMetaFields());
+    ApiRequest("/api/settings/metafields", "DELETE", {
+      metaType,
+      _id: id,
+    }).then(() => fetchMetaFields());
   };
 
   const handleAddMetaField = (newField) => {
@@ -230,7 +294,7 @@ export default function MetaField() {
     }
     ApiRequest("/api/settings/metafields", "POST", newField).then(
       (res) => fetchMetaFields(),
-      setShowAddMetaField(false)
+      setShowAddMetaField(false),
     );
   };
 
@@ -258,7 +322,9 @@ export default function MetaField() {
       }[type] || "bg-gray-100 text-gray-700";
 
     return (
-      <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", styles)}>
+      <span
+        className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", styles)}
+      >
         {type?.charAt(0).toUpperCase() + type?.slice(1)}
       </span>
     );
@@ -273,7 +339,9 @@ export default function MetaField() {
       }[entity] || "bg-gray-100 text-gray-700";
 
     return (
-      <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", styles)}>
+      <span
+        className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", styles)}
+      >
         {entity?.charAt(0).toUpperCase() + entity?.slice(1)}
       </span>
     );
@@ -282,8 +350,14 @@ export default function MetaField() {
   const fetchMetaFields = () => {
     ApiRequest("/api/settings/metafields").then((res) => {
       setMetaFields([
-        ...res.data.billMetaField.map((field) => ({ ...field, entity: "Bill" })),
-        ...res.data.customerMetaField.map((field) => ({ ...field, entity: "Customer" })),
+        ...res.data.billMetaField.map((field) => ({
+          ...field,
+          entity: "Bill",
+        })),
+        ...res.data.customerMetaField.map((field) => ({
+          ...field,
+          entity: "Customer",
+        })),
       ]);
     });
   };
@@ -297,7 +371,9 @@ export default function MetaField() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h3 className="text-lg font-medium text-gray-900">Meta Fields</h3>
-            <p className="text-sm text-gray-500">Define custom fields for your entities</p>
+            <p className="text-sm text-gray-500">
+              Define custom fields for your entities
+            </p>
           </div>
           <button
             onClick={() => setShowAddMetaField(true)}
@@ -336,14 +412,19 @@ export default function MetaField() {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-8 w-8">
                         <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                          {React.createElement(getFieldTypeIcon(field.dataType), {
-                            size: 18,
-                            className: "text-gray-500",
-                          })}
+                          {React.createElement(
+                            getFieldTypeIcon(field.dataType),
+                            {
+                              size: 18,
+                              className: "text-gray-500",
+                            },
+                          )}
                         </div>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{field.label}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {field.label}
+                        </div>
                         <div className=" text-gray-500">{field.name}</div>
                       </div>
                     </div>
@@ -356,7 +437,9 @@ export default function MetaField() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {field.isRequired ? (
-                      <span className="text-green-700 px-2 py-1 bg-green-100 font-bold rounded-full">Yes</span>
+                      <span className="text-green-700 px-2 py-1 bg-green-100 font-bold rounded-full">
+                        Yes
+                      </span>
                     ) : (
                       <span className="text-gray-400">No</span>
                     )}
@@ -366,7 +449,9 @@ export default function MetaField() {
                       onClick={() =>
                         handleDeleteMetaField(
                           field._id,
-                          field.entity === "Bill" ? "billMetaField" : "customerMetaField"
+                          field.entity === "Bill"
+                            ? "billMetaField"
+                            : "customerMetaField",
                         )
                       }
                       className="text-red-600 hover:text-red-900"
@@ -391,7 +476,12 @@ export default function MetaField() {
           </table>
         </div>
       </div>
-      {showAddMetaField && <AddMetaFieldModal onClose={() => setShowAddMetaField(false)} onSave={handleAddMetaField} />}
+      {showAddMetaField && (
+        <AddMetaFieldModal
+          onClose={() => setShowAddMetaField(false)}
+          onSave={handleAddMetaField}
+        />
+      )}
     </>
   );
 }

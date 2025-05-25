@@ -23,7 +23,12 @@ export function PrintBill() {
       ApiRequest(`/api/company`).then((res) => {
         console.log({ res: res.data });
         const { name, address, phoneNumber } = res.data;
-        setCompanyInfo({ name, address: address[0], city: address[1], number: phoneNumber });
+        setCompanyInfo({
+          name,
+          address: address[0],
+          city: address[1],
+          number: phoneNumber,
+        });
       });
       ApiRequest(`/api/bills/${router.query.id}`, "GET")
         .then((res) => {

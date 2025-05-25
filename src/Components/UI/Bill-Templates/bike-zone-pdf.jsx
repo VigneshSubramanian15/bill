@@ -13,7 +13,10 @@ export default function generateInvoicePdf(companyInfo, billData) {
     };
   });
 
-  const subtotal = computedItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+  const subtotal = computedItems.reduce(
+    (sum, item) => sum + parseFloat(item.total),
+    0,
+  );
   const taxAmount = (subtotal * (Number(billData.tax) || 0)) / 100;
   const discountAmount = (subtotal * (Number(billData.discount) || 0)) / 100;
   const grandTotal = subtotal + taxAmount - discountAmount;
@@ -62,9 +65,16 @@ export default function generateInvoicePdf(companyInfo, billData) {
   doc.setFontSize(boldFontSize);
   doc.setFont("helvetica", "bold");
   let rightSideY = 40;
-  doc.text(`Bill Number: ${billData.billNumber}`, rightMargin, rightSideY, { align: "left" });
+  doc.text(`Bill Number: ${billData.billNumber}`, rightMargin, rightSideY, {
+    align: "left",
+  });
   rightSideY += 14;
-  doc.text(`Date: ${new Date(billData.date).toLocaleDateString()}`, rightMargin, rightSideY, { align: "left" });
+  doc.text(
+    `Date: ${new Date(billData.date).toLocaleDateString()}`,
+    rightMargin,
+    rightSideY,
+    { align: "left" },
+  );
 
   // Horizontal line below header
   doc.setLineWidth(0.5);
@@ -83,7 +93,11 @@ export default function generateInvoicePdf(companyInfo, billData) {
   doc.text(`${billData.customer.name}`, leftMargin, currentY);
 
   currentY += 14;
-  doc.text(`Customer Number: ${billData.customer.number}`, leftMargin, currentY);
+  doc.text(
+    `Customer Number: ${billData.customer.number}`,
+    leftMargin,
+    currentY,
+  );
 
   if (billData.customer.address) {
     currentY += 14;
@@ -99,11 +113,15 @@ export default function generateInvoicePdf(companyInfo, billData) {
 
       // Example of boolean vs. non-boolean data
       if (meta.dataType !== "Boolean") {
-        doc.text(`${meta.label}: ${meta.value}`, rightMargin, metaSectionY, { align: "left" });
+        doc.text(`${meta.label}: ${meta.value}`, rightMargin, metaSectionY, {
+          align: "left",
+        });
       } else {
         // Simple [X] / [ ] approach for booleans
         const checkBox = meta.value ? "[X]" : "[ ]";
-        doc.text(`${meta.label}: ${checkBox}`, rightMargin, metaSectionY, { align: "left" });
+        doc.text(`${meta.label}: ${checkBox}`, rightMargin, metaSectionY, {
+          align: "left",
+        });
       }
       metaSectionY += 14;
     });
@@ -114,7 +132,10 @@ export default function generateInvoicePdf(companyInfo, billData) {
   // -----------------------------
   const tableHeaders = [
     [
-      { content: "Item Description", styles: { halign: "left", fontStyle: "bold" } },
+      {
+        content: "Item Description",
+        styles: { halign: "left", fontStyle: "bold" },
+      },
       { content: "Qty", styles: { halign: "center", fontStyle: "bold" } },
       { content: "Rate", styles: { halign: "center", fontStyle: "bold" } },
       { content: "Total", styles: { halign: "center", fontStyle: "bold" } },
@@ -122,7 +143,12 @@ export default function generateInvoicePdf(companyInfo, billData) {
   ];
 
   // Transform the computedItems into the array format autoTable expects
-  const tableBody = computedItems.map((item) => [item.description, item.qty.toString(), item.rate, item.total]);
+  const tableBody = computedItems.map((item) => [
+    item.description,
+    item.qty.toString(),
+    item.rate,
+    item.total,
+  ]);
 
   const startY = 150; // where table should start
   autoTable(doc, {
@@ -169,17 +195,28 @@ export default function generateInvoicePdf(companyInfo, billData) {
 
   totalsY += 14;
   // Tax
-  doc.text(`Tax (${billData.tax || 0}%):`, leftMargin + 300, totalsY, { align: "right" });
+  doc.text(`Tax (${billData.tax || 0}%):`, leftMargin + 300, totalsY, {
+    align: "right",
+  });
   doc.text(taxAmount.toFixed(2), leftMargin + 400, totalsY, { align: "right" });
 
   totalsY += 14;
   // Discount
-  doc.text(`Discount (${billData.discount || 0}%):`, leftMargin + 300, totalsY, { align: "right" });
-  doc.text(`-${discountAmount.toFixed(2)}`, leftMargin + 400, totalsY, { align: "right" });
+  doc.text(
+    `Discount (${billData.discount || 0}%):`,
+    leftMargin + 300,
+    totalsY,
+    { align: "right" },
+  );
+  doc.text(`-${discountAmount.toFixed(2)}`, leftMargin + 400, totalsY, {
+    align: "right",
+  });
 
   totalsY += 20;
   doc.setFontSize(headerFontSize);
-  doc.text(`Total: ₹${grandTotal.toFixed(2)}`, leftMargin + 350, totalsY, { align: "right" });
+  doc.text(`Total: ₹${grandTotal.toFixed(2)}`, leftMargin + 350, totalsY, {
+    align: "right",
+  });
 
   // -----------------------------
   // 5. Amount in Words / Footer
@@ -188,7 +225,11 @@ export default function generateInvoicePdf(companyInfo, billData) {
   doc.setFontSize(normalFontSize);
   doc.setFont("helvetica", "italic");
 
-  doc.text(`Total amount in words: ${GetNumberToWords(grandTotal.toFixed(2))}`, leftMargin, totalsY);
+  doc.text(
+    `Total amount in words: ${GetNumberToWords(grandTotal.toFixed(2))}`,
+    leftMargin,
+    totalsY,
+  );
 
   totalsY += 30;
   doc.setFontSize(boldFontSize);

@@ -34,7 +34,7 @@ export function Settings() {
                 "flex items-center px-1 py-4 text-sm font-medium border-b-2 -mb-px",
                 activeTab === tab.id
                   ? "border-green-500 text-green-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
               )}
             >
               <tab.icon size={20} className="mr-2" />
@@ -47,7 +47,12 @@ export function Settings() {
       <div className="bg-white rounded-xl shadow-sm">
         {activeTab === "company" && <Company />}
         {activeTab === "users" && <User />}
-        {activeTab === "appearance" && <Appearance accentColor={accentColor} setAccentColor={setAccentColor} />}
+        {activeTab === "appearance" && (
+          <Appearance
+            accentColor={accentColor}
+            setAccentColor={setAccentColor}
+          />
+        )}
         {activeTab === "meta" && <MetaField />}
       </div>
     </div>

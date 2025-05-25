@@ -24,7 +24,10 @@ export function Login() {
         password: encryptedPassword,
       });
 
-      const encryptedToken = encryptData(data.token, process.env.NEXT_PUBLIC_ENCRYPTION_KEY);
+      const encryptedToken = encryptData(
+        data.token,
+        process.env.NEXT_PUBLIC_ENCRYPTION_KEY,
+      );
       localStorage.setItem("authToken", encryptedToken);
       router.push("/");
       console.log("Login successful:", data);
@@ -38,13 +41,19 @@ export function Login() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
-            <p className="text-gray-600">Please enter your details to sign in</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome back
+            </h1>
+            <p className="text-gray-600">
+              Please enter your details to sign in
+            </p>
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email address
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
@@ -61,7 +70,9 @@ export function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
@@ -85,9 +96,14 @@ export function Login() {
                   type="checkbox"
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
-                <label className="ml-2 block text-sm text-gray-700">Remember me</label>
+                <label className="ml-2 block text-sm text-gray-700">
+                  Remember me
+                </label>
               </div>
-              <Link href="/forgot-password" className="text-sm text-green-600 hover:text-green-500">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-green-600 hover:text-green-500"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -102,7 +118,10 @@ export function Login() {
 
           <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link href="/signup" className="text-green-600 hover:text-green-500 font-medium">
+            <Link
+              href="/signup"
+              className="text-green-600 hover:text-green-500 font-medium"
+            >
               Sign up
             </Link>
           </p>

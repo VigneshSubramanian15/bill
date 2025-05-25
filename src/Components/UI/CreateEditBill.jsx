@@ -7,7 +7,7 @@ export function CreateEditBill() {
   const router = useRouter();
   const isCreateMode = router?.query?.id ? true : false;
   const [billNumber, setBillNumber] = useState();
-  const [billLoading, setbillLoading] = useState(false)
+  const [billLoading, setbillLoading] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [customerInfo, setCustomerInfo] = useState("");
   const [customerFiltered, setCustomerFiltered] = useState([]);
@@ -19,7 +19,9 @@ export function CreateEditBill() {
   const [MetaFields, setMetaFields] = useState([]);
   const [MetaFieldVlaues, setMetaFieldVlaues] = useState([]);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
-  const [lineItems, setLineItems] = useState([{ id: "1", name: "", quantity: 1, rate: "", total: 0 }]);
+  const [lineItems, setLineItems] = useState([
+    { id: "1", name: "", quantity: 1, rate: "", total: 0 },
+  ]);
   const [tax, setTax] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [error, setError] = useState("");
@@ -46,12 +48,14 @@ export function CreateEditBill() {
                 quantity: item.itemQty,
                 rate: item.itemPrice,
                 total: item.itemQty * item.itemPrice,
-              }))
+              })),
             );
             setTax(bill.tax);
             setDiscount(bill.discount);
             let metavalue = {};
-            bill.metaData.map((meta) => (metavalue = { ...metavalue, [meta.name]: meta.value }));
+            bill.metaData.map(
+              (meta) => (metavalue = { ...metavalue, [meta.name]: meta.value }),
+            );
             setMetaFieldVlaues(metavalue);
           } else {
             setError("Failed to load bill data");
@@ -59,7 +63,9 @@ export function CreateEditBill() {
         })
         .catch(() => setError("Failed to load bill data"));
     } else {
-      ApiRequest("/api/bills/getBillNo").then((data) => setBillNumber(incrementIfInteger(data.data.billNumber)));
+      ApiRequest("/api/bills/getBillNo").then((data) =>
+        setBillNumber(incrementIfInteger(data.data.billNumber)),
+      );
     }
     ApiRequest("/api/settings/metafields").then((data) => {
       const order = {
@@ -69,9 +75,10 @@ export function CreateEditBill() {
         Select: 4,
         Boolean: 5,
       };
-      const meta = [...data.data.billMetaField, ...data.data.customerMetaField].sort(
-        (a, b) => order[a.dataType] - order[b.dataType]
-      );
+      const meta = [
+        ...data.data.billMetaField,
+        ...data.data.customerMetaField,
+      ].sort((a, b) => order[a.dataType] - order[b.dataType]);
       console.log({ meta });
       setMetaFields(meta);
     });
@@ -104,7 +111,8 @@ export function CreateEditBill() {
     const newLineItems = [...lineItems];
     const updatedItem = { ...newLineItems[index], [field]: value };
     if (field === "quantity" || field === "rate") {
-      const quantity = field === "quantity" ? value : Number(updatedItem.quantity) || 0;
+      const quantity =
+        field === "quantity" ? value : Number(updatedItem.quantity) || 0;
       const rate = field === "rate" ? value : Number(updatedItem.rate) || 0;
       updatedItem.total = quantity * rate;
     }
@@ -141,7 +149,10 @@ export function CreateEditBill() {
       setError("Customer details are required");
       return false;
     }
-    if (!lineItems.length || lineItems.some((item) => !item.name || !item.rate)) {
+    if (
+      !lineItems.length ||
+      lineItems.some((item) => !item.name || !item.rate)
+    ) {
       setError("Each line item must have a name and rate");
       return false;
     }
@@ -215,27 +226,41 @@ export function CreateEditBill() {
       if (!isCreateMode) {
         billId = await ApiRequest("/api/bills", "POST", billData);
       } else {
-        billId = await ApiRequest(`/api/bills/${router?.query?.id}`, "PUT", billData);
+        billId = await ApiRequest(
+          `/api/bills/${router?.query?.id}`,
+          "PUT",
+          billData,
+        );
       }
       console.log({ billId });
-      setSuccess(!isCreateMode ? "Bill created successfully" : "Bill updated successfully");
-      setbillLoading(false)
+      setSuccess(
+        !isCreateMode
+          ? "Bill created successfully"
+          : "Bill updated successfully",
+      );
+      setbillLoading(false);
       router.push(`/bill/${billId.data}`);
     } catch (err) {
       setError(err.message);
-      setbillLoading(false)
+      setbillLoading(false);
       console.error("Error saving bill:", err);
     }
   };
 
   return (
     <div className="space-y-6 mx-auto">
-      {error && <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>}
-      {success && <div className="p-4 bg-green-100 text-green-700 rounded">{success}</div>}
+      {error && (
+        <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>
+      )}
+      {success && (
+        <div className="p-4 bg-green-100 text-green-700 rounded">{success}</div>
+      )}
       <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Bill Number</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Bill Number
+            </label>
             <input
               type="text"
               onChange={({ target: { value } }) => setBillNumber(value)}
@@ -244,7 +269,9 @@ export function CreateEditBill() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date
+            </label>
             <input
               type="date"
               value={date}
@@ -254,7 +281,9 @@ export function CreateEditBill() {
           </div>
         </div>
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Customer Phone Number
+          </label>
           <input
             type="number"
             value={customerInfo || customerPhone}
@@ -283,9 +312,14 @@ export function CreateEditBill() {
           ) : (
             ""
           )}
-          <div style={{ marginTop: "20px" }} className=" mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            style={{ marginTop: "20px" }}
+            className=" mt-5 grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Customer Name
+              </label>
               <input
                 type="text"
                 value={customerName}
@@ -295,7 +329,9 @@ export function CreateEditBill() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Customer Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Customer Email
+              </label>
               <input
                 type="email"
                 value={customerEmail}
@@ -306,7 +342,9 @@ export function CreateEditBill() {
             </div>
           </div>
           <div style={{ marginTop: "20px" }}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Customer Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Customer Address
+            </label>
             <input
               type="email"
               value={customerAddress}
@@ -323,11 +361,18 @@ export function CreateEditBill() {
           {MetaFields?.map((meta) =>
             meta.dataType === "String" ? (
               <div className="w-full md:w-1/2 px-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">{meta.label}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {meta.label}
+                </label>
                 <input
                   type="email"
                   value={MetaFieldVlaues[meta.name]}
-                  onChange={(e) => setMetaFieldVlaues((m) => ({ ...m, [meta.name]: e.target.value }))}
+                  onChange={(e) =>
+                    setMetaFieldVlaues((m) => ({
+                      ...m,
+                      [meta.name]: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder={meta.label}
                 />
@@ -338,14 +383,27 @@ export function CreateEditBill() {
                   <input
                     type="checkbox"
                     checked={MetaFieldVlaues[meta.name]}
-                    onChange={(e) => setMetaFieldVlaues((m) => ({ ...m, [meta.name]: e.target.checked }))}
+                    onChange={(e) =>
+                      setMetaFieldVlaues((m) => ({
+                        ...m,
+                        [meta.name]: e.target.checked,
+                      }))
+                    }
                     className="hidden peer"
                   />
-                  <span>{MetaFieldVlaues[meta.name] ? <CheckSquare2Icon size={20} /> : <Square size={20} />}</span>
-                  <span className="ml-2 text-sm text-gray-700">{meta.label}</span>
+                  <span>
+                    {MetaFieldVlaues[meta.name] ? (
+                      <CheckSquare2Icon size={20} />
+                    ) : (
+                      <Square size={20} />
+                    )}
+                  </span>
+                  <span className="ml-2 text-sm text-gray-700">
+                    {meta.label}
+                  </span>
                 </label>
               </div>
-            )
+            ),
           )}
         </div>
         <hr className="!text-gray-300" />
@@ -390,7 +448,9 @@ export function CreateEditBill() {
                       <input
                         type="text"
                         value={item.name}
-                        onChange={(e) => handleLineItemChange(index, "name", e.target.value)}
+                        onChange={(e) =>
+                          handleLineItemChange(index, "name", e.target.value)
+                        }
                         style={{ minWidth: 220 }}
                         className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="Item name"
@@ -402,7 +462,11 @@ export function CreateEditBill() {
                         value={item.quantity}
                         style={{ minWidth: 70 }}
                         onChange={(e) =>
-                          handleLineItemChange(index, "quantity", e.target.value.replace(/^0+/, "") || 0)
+                          handleLineItemChange(
+                            index,
+                            "quantity",
+                            e.target.value.replace(/^0+/, "") || 0,
+                          )
                         }
                         className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         min="1"
@@ -413,17 +477,28 @@ export function CreateEditBill() {
                         type="number"
                         value={item.rate}
                         style={{ minWidth: 100 }}
-                        onChange={(e) => handleLineItemChange(index, "rate", e.target.value.replace(/^0+/, "") || 0)}
+                        onChange={(e) =>
+                          handleLineItemChange(
+                            index,
+                            "rate",
+                            e.target.value.replace(/^0+/, "") || 0,
+                          )
+                        }
                         className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         min="0"
                         step="0.01"
                       />
                     </td>
                     <td className="px-4 py-2">
-                      <span className="text-gray-900 font-medium">₹{item.total.toFixed(2)}</span>
+                      <span className="text-gray-900 font-medium">
+                        ₹{item.total.toFixed(2)}
+                      </span>
                     </td>
                     <td className="px-4 py-2">
-                      <button onClick={() => removeLineItem(index)} className="text-red-600 hover:text-red-800">
+                      <button
+                        onClick={() => removeLineItem(index)}
+                        className="text-red-600 hover:text-red-800"
+                      >
                         <Minus size={16} />
                       </button>
                     </td>
@@ -436,7 +511,9 @@ export function CreateEditBill() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-300 pt-6">
           <div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tax (%)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tax (%)
+              </label>
               <input
                 type="number"
                 value={tax}
@@ -450,12 +527,16 @@ export function CreateEditBill() {
               />
             </div>
             <div className="pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Discount (%)
+              </label>
               <input
                 type="number"
                 value={discount}
                 style={{ maxWidth: 250 }}
-                onChange={(e) => setDiscount(e.target.value.replace(/^0+/, "") || 0)}
+                onChange={(e) =>
+                  setDiscount(e.target.value.replace(/^0+/, "") || 0)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Discount (%)"
                 min="0"
@@ -468,38 +549,50 @@ export function CreateEditBill() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Subtotal:</span>
-                <span className="text-gray-900 font-medium">₹{subtotal.toFixed(2)}</span>
+                <span className="text-gray-900 font-medium">
+                  ₹{subtotal.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Tax:</span>
-                <span className="text-gray-900 font-medium">₹{taxAmount.toFixed(2)}</span>
+                <span className="text-gray-900 font-medium">
+                  ₹{taxAmount.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Discount:</span>
-                <span className="text-gray-900 font-medium">₹{discountAmount.toFixed(2)}</span>
+                <span className="text-gray-900 font-medium">
+                  ₹{discountAmount.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Grand Total:</span>
-                <span className="text-gray-900 font-medium">₹{grandTotal.toFixed(2)}</span>
+                <span className="text-gray-900 font-medium">
+                  ₹{grandTotal.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
         <div className="flex justify-end">
-          {!isCreateMode ? <button
-            onClick={handleSave}
-            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            <Save size={20} className="mr-2" />
-            {billLoading ? "Creating Bill..." : "Create Bill"}
-          </button> : <button
-            onClick={handleSave}
-            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            <Save size={20} className="mr-2" />
-            {billLoading ? "Updating Bill..." : "Update Bill"}
-          </button>}
+          {!isCreateMode ? (
+            <button
+              onClick={handleSave}
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              <Save size={20} className="mr-2" />
+              {billLoading ? "Creating Bill..." : "Create Bill"}
+            </button>
+          ) : (
+            <button
+              onClick={handleSave}
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              <Save size={20} className="mr-2" />
+              {billLoading ? "Updating Bill..." : "Update Bill"}
+            </button>
+          )}
         </div>
       </div>
     </div>

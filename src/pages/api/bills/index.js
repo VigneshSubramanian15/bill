@@ -56,26 +56,26 @@ export default async function handler(req, res) {
             pages: Math.ceil(total / limitNum),
           });
         } catch (error) {
-          return ErrorResponse(res, error.message, 400)
+          return ErrorResponse(res, error.message, 400);
         }
         break;
       case "POST":
         try {
           const { error, value } = billValidationSchema.validate(req.body);
           if (error) {
-            return ErrorResponse(res, error.details[0].message, 400)
+            return ErrorResponse(res, error.details[0].message, 400);
           }
           const newBill = await Bill.create({ companyId, userId, ...value });
           res.status(201).json({ success: true, data: newBill._id });
         } catch (error) {
-          return ErrorResponse(res, error.message, 400)
+          return ErrorResponse(res, error.message, 400);
         }
         break;
       default:
         res.setHeader("Allow", ["GET", "POST"]);
-        return ErrorResponse(res, `Method ${method} Not Allowed`, 405)
+        return ErrorResponse(res, `Method ${method} Not Allowed`, 405);
     }
   } catch (error) {
-    return ErrorResponse(res, error)
+    return ErrorResponse(res, error);
   }
 }

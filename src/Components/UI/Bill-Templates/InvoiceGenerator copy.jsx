@@ -3,7 +3,11 @@ import { jsPDF } from "jspdf";
 import GetNumberToWords from "@/Components/Util/numberToWords";
 import "jspdf-autotable";
 
-export default function generateInvoicePdf(companyInfo, billData, sendToWhatsApp = false) {
+export default function generateInvoicePdf(
+  companyInfo,
+  billData,
+  sendToWhatsApp = false,
+) {
   const doc = new jsPDF();
 
   // Calculate items and amounts
@@ -66,7 +70,12 @@ export default function generateInvoicePdf(companyInfo, billData, sendToWhatsApp
   doc.setFontSize(24);
   doc.setTextColor(...primaryColor);
   doc.setFont("helvetica", "bold");
-  doc.text(`Invoice Number: ${invoiceData.invoice.number}`, pageWidth - margin, margin, { align: "right" });
+  doc.text(
+    `Invoice Number: ${invoiceData.invoice.number}`,
+    pageWidth - margin,
+    margin,
+    { align: "right" },
+  );
 
   // Company details (top left)
   doc.setTextColor(0, 0, 0);
@@ -94,7 +103,11 @@ export default function generateInvoicePdf(companyInfo, billData, sendToWhatsApp
   doc.text("Invoice Details", pageWidth - margin - 60, margin + 10);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(`Date: ${invoiceData.invoice.date}`, pageWidth - margin - 60, margin + 15);
+  doc.text(
+    `Date: ${invoiceData.invoice.date}`,
+    pageWidth - margin - 60,
+    margin + 15,
+  );
 
   // Separator line
   doc.setDrawColor(220, 220, 220);
@@ -150,33 +163,71 @@ export default function generateInvoicePdf(companyInfo, billData, sendToWhatsApp
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.text("Sub Total:", pageWidth - margin - 60, finalY + 10);
-  doc.text(`${invoiceData.summary.subTotal.toFixed(2)}`, pageWidth - margin, finalY + 10, { align: "right" });
+  doc.text(
+    `${invoiceData.summary.subTotal.toFixed(2)}`,
+    pageWidth - margin,
+    finalY + 10,
+    { align: "right" },
+  );
   doc.text("Tax:", pageWidth - margin - 60, finalY + 15);
-  doc.text(`${invoiceData.summary.tax.toFixed(2)}`, pageWidth - margin, finalY + 15, { align: "right" });
+  doc.text(
+    `${invoiceData.summary.tax.toFixed(2)}`,
+    pageWidth - margin,
+    finalY + 15,
+    { align: "right" },
+  );
   doc.text("Discount:", pageWidth - margin - 60, finalY + 20);
-  doc.text(`-${invoiceData.summary.discount.toFixed(2)}`, pageWidth - margin, finalY + 20, { align: "right" });
+  doc.text(
+    `-${invoiceData.summary.discount.toFixed(2)}`,
+    pageWidth - margin,
+    finalY + 20,
+    { align: "right" },
+  );
   doc.setFont("helvetica", "bold");
   doc.text("TOTAL:", pageWidth - margin - 60, finalY + 30);
-  doc.text(`Rs ${invoiceData.summary.total.toFixed(2)}`, pageWidth - margin, finalY + 30, { align: "right" });
+  doc.text(
+    `Rs ${invoiceData.summary.total.toFixed(2)}`,
+    pageWidth - margin,
+    finalY + 30,
+    { align: "right" },
+  );
 
   // Amount in words
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.text("Amount in words:", margin, finalY + 40);
   doc.setFont("helvetica", "italic");
-  doc.text(GetNumberToWords(invoiceData.summary.total.toFixed(0)), margin + 30, finalY + 40);
+  doc.text(
+    GetNumberToWords(invoiceData.summary.total.toFixed(0)),
+    margin + 30,
+    finalY + 40,
+  );
 
   // Signature
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text("Authorized Signature", pageWidth - margin - 30, finalY + 60, { align: "center" });
-  doc.line(pageWidth - margin - 60, finalY + 55, pageWidth - margin, finalY + 55);
+  doc.text("Authorized Signature", pageWidth - margin - 30, finalY + 60, {
+    align: "center",
+  });
+  doc.line(
+    pageWidth - margin - 60,
+    finalY + 55,
+    pageWidth - margin,
+    finalY + 55,
+  );
   doc.setFont("helvetica", "bold");
-  doc.text(invoiceData.signature, pageWidth - margin - 30, finalY + 65, { align: "center" });
+  doc.text(invoiceData.signature, pageWidth - margin - 30, finalY + 65, {
+    align: "center",
+  });
 
   doc.setFontSize(8);
   doc.setTextColor(...secondaryColor);
-  doc.text(invoiceData.footer, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+  doc.text(
+    invoiceData.footer,
+    pageWidth / 2,
+    doc.internal.pageSize.getHeight() - 10,
+    { align: "center" },
+  );
 
   if (sendToWhatsApp) {
     const pdfBlob = doc.output("blob");

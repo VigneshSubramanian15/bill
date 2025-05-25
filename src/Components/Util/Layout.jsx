@@ -3,7 +3,15 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { LayoutDashboard, FileText, Users, Settings, LogOut, Menu, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+} from "lucide-react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },

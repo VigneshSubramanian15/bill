@@ -3,9 +3,9 @@ import { Settings } from "@/Components/UI/Settings/index";
 import { Layout } from "@/Components/Util/Layout";
 
 export default function SettingPage() {
-    return (
-        <Layout>
-            <Settings />
-        </Layout>
-    );
+  return (
+    <Layout>
+      <Settings />
+    </Layout>
+  );
 }
