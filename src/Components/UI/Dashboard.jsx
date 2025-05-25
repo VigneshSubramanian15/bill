@@ -26,7 +26,12 @@ const mockData = {
       trend: "+2.3%",
       positive: false,
     },
-    { label: "Paid Bills", value: "$16,330", trend: "+8.3%", positive: true },
+    {
+      label: "Paid Bills",
+      value: "$16,330",
+      trend: "+8.3%",
+      positive: true,
+    },
     {
       label: "Overdue Bills",
       value: "$3,460",

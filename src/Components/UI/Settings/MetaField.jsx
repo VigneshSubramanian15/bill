@@ -111,7 +111,10 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
               type="text"
               value={formData.name}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({
+                  ...formData,
+                  name: e.target.value,
+                })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
@@ -127,7 +130,10 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
               type="text"
               value={formData.label}
               onChange={(e) =>
-                setFormData({ ...formData, label: e.target.value })
+                setFormData({
+                  ...formData,
+                  label: e.target.value,
+                })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
@@ -142,7 +148,10 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
             <select
               value={formData.dataType}
               onChange={(e) =>
-                setFormData({ ...formData, dataType: e.target.value })
+                setFormData({
+                  ...formData,
+                  dataType: e.target.value,
+                })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
@@ -164,7 +173,10 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                 type="text"
                 value={formData.options}
                 onChange={(e) =>
-                  setFormData({ ...formData, options: e.target.value })
+                  setFormData({
+                    ...formData,
+                    options: e.target.value,
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Option1, Option2, Option3"
@@ -184,7 +196,10 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                   id="addToTotal"
                   checked={formData.addToTotal}
                   onChange={(e) =>
-                    setFormData({ ...formData, addToTotal: e.target.checked })
+                    setFormData({
+                      ...formData,
+                      addToTotal: e.target.checked,
+                    })
                   }
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
@@ -202,7 +217,10 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                   id="showInBill"
                   checked={formData.showInBill}
                   onChange={(e) =>
-                    setFormData({ ...formData, showInBill: e.target.checked })
+                    setFormData({
+                      ...formData,
+                      showInBill: e.target.checked,
+                    })
                   }
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
@@ -241,7 +259,10 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                 id="isRequired"
                 checked={formData.isRequired}
                 onChange={(e) =>
-                  setFormData({ ...formData, isRequired: e.target.checked })
+                  setFormData({
+                    ...formData,
+                    isRequired: e.target.checked,
+                  })
                 }
                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
               />

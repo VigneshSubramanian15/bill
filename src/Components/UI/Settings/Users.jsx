@@ -65,7 +65,10 @@ const Users = () => {
                 type="text"
                 value={formData.name}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({
+                    ...formData,
+                    name: e.target.value,
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 required
@@ -80,7 +83,10 @@ const Users = () => {
                 type="email"
                 value={formData.email}
                 onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
+                  setFormData({
+                    ...formData,
+                    email: e.target.value,
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 required
@@ -94,7 +100,10 @@ const Users = () => {
               <select
                 value={formData.role}
                 onChange={(e) =>
-                  setFormData({ ...formData, role: e.target.value })
+                  setFormData({
+                    ...formData,
+                    role: e.target.value,
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >

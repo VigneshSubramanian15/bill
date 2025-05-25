@@ -52,7 +52,10 @@ const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
               value={formData.name}
               style={{ color: "black" }}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({
+                  ...formData,
+                  name: e.target.value,
+                })
               }
               className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
@@ -68,7 +71,10 @@ const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
               value={formData.email}
               style={{ color: "black" }}
               onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
+                setFormData({
+                  ...formData,
+                  email: e.target.value,
+                })
               }
               className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
@@ -84,7 +90,10 @@ const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
               value={formData.number}
               style={{ color: "black" }}
               onChange={(e) =>
-                setFormData({ ...formData, number: e.target.value })
+                setFormData({
+                  ...formData,
+                  number: e.target.value,
+                })
               }
               className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required

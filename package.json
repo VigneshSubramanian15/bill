@@ -30,6 +30,7 @@
     "@tailwindcss/postcss": "^4",
     "eslint": "9.27.0",
     "eslint-config-next": "15.4.0-canary.51",
+    "prettier": "3.5.3",
     "tailwindcss": "^4"
   }
 }

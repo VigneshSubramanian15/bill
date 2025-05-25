@@ -55,7 +55,9 @@ export default async function handler(req, res) {
 
         if (
           !metaType ||
-          (metaType !== "billMetaField" && metaType !== "customerMetaField")
+          (metaType !== "billMetaField" &&
+            metaType !== "customerMetaField" &&
+            metaType !== "lineItemMetaField")
         ) {
           return ErrorResponse(res, "Invalid metaType provided", 400);
         }

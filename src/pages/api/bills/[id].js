@@ -73,7 +73,10 @@ export default async function handler(req, res) {
       break;
     case "DELETE":
       try {
-        const deletedBill = await Bill.findOneAndDelete({ _id: id, companyId });
+        const deletedBill = await Bill.findOneAndDelete({
+          _id: id,
+          companyId,
+        });
         if (!deletedBill) {
           return ErrorResponse(res, "Bill not found", 404);
         }

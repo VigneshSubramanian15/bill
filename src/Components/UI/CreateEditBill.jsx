@@ -54,7 +54,11 @@ export function CreateEditBill() {
             setDiscount(bill.discount);
             let metavalue = {};
             bill.metaData.map(
-              (meta) => (metavalue = { ...metavalue, [meta.name]: meta.value }),
+              (meta) =>
+                (metavalue = {
+                  ...metavalue,
+                  [meta.name]: meta.value,
+                }),
             );
             setMetaFieldVlaues(metavalue);
           } else {

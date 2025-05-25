@@ -137,8 +137,14 @@ export default function generateInvoicePdf(companyInfo, billData) {
         styles: { halign: "left", fontStyle: "bold" },
       },
       { content: "Qty", styles: { halign: "center", fontStyle: "bold" } },
-      { content: "Rate", styles: { halign: "center", fontStyle: "bold" } },
-      { content: "Total", styles: { halign: "center", fontStyle: "bold" } },
+      {
+        content: "Rate",
+        styles: { halign: "center", fontStyle: "bold" },
+      },
+      {
+        content: "Total",
+        styles: { halign: "center", fontStyle: "bold" },
+      },
     ],
   ];
 
@@ -191,14 +197,18 @@ export default function generateInvoicePdf(companyInfo, billData) {
 
   // Subtotal
   doc.text("Subtotal:", leftMargin + 300, totalsY, { align: "right" });
-  doc.text(subtotal.toFixed(2), leftMargin + 400, totalsY, { align: "right" });
+  doc.text(subtotal.toFixed(2), leftMargin + 400, totalsY, {
+    align: "right",
+  });
 
   totalsY += 14;
   // Tax
   doc.text(`Tax (${billData.tax || 0}%):`, leftMargin + 300, totalsY, {
     align: "right",
   });
-  doc.text(taxAmount.toFixed(2), leftMargin + 400, totalsY, { align: "right" });
+  doc.text(taxAmount.toFixed(2), leftMargin + 400, totalsY, {
+    align: "right",
+  });
 
   totalsY += 14;
   // Discount

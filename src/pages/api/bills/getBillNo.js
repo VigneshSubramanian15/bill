@@ -14,7 +14,10 @@ export default async function handler(req, res) {
           .sort({ _id: -1 })
           .select("billNumber");
         if (!bill) {
-          res.status(200).json({ success: true, data: { billNumber: 0 } });
+          res.status(200).json({
+            success: true,
+            data: { billNumber: 0 },
+          });
           // return ErrorResponse(res, 'Bill not found', 404);
         }
         res.status(200).json({ success: true, data: bill });

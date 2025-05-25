@@ -75,9 +75,10 @@ export default async function handler(req, res) {
           return ErrorResponse(res, "Customer not found", 404);
         }
 
-        res
-          .status(200)
-          .json({ success: true, message: "Customer deleted successfully" });
+        res.status(200).json({
+          success: true,
+          message: "Customer deleted successfully",
+        });
       } catch (error) {
         return ErrorResponse(res, error.message, 400);
       }
