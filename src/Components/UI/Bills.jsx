@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Plus,
   Search,
@@ -6,9 +6,7 @@ import {
   Eye,
   Pencil,
   Trash2,
-  Filter,
-  Calendar,
-  ChevronDown,
+  ListCollapse,
 } from "lucide-react";
 import { cn } from "./../Util/utils";
 import { useRouter } from "next/router";
@@ -64,20 +62,31 @@ export function Bills() {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const [deleteBill, setDeleteBill] = useState(null);
+  const [page, setPage] = useState(1);
+  const [loadMore, setLoadMore] = useState(true);
+  const bottomRef = useRef(null);
 
   const router = useRouter();
+  const fetchBills = async () => {
+    try {
+      const res = await ApiRequest("/api/bills?page=" + page, "GET");
+      if (!res.success) {
+        throw new Error(res.message || "Failed to fetch bills");
+      }
+      if (res.data.length < 10) setLoadMore(false);
+      setBills((bills) => [...bills, ...res.data]);
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      setError("");
+    } catch (err) {
+      setError(err.message || "Failed to load bills");
+    }
+  };
 
   useEffect(() => {
-    const fetchBills = async () => {
-      try {
-        const res = await ApiRequest("/api/bills");
-        setBills(res.data);
-      } catch (err) {
-        setError(err.message || "Failed to load bills");
-      }
-    };
     fetchBills();
-  }, []);
+  }, [page]);
 
   const filteredBills = bills.filter((bill) => {
     const term = searchTerm?.toLowerCase();
@@ -255,6 +264,16 @@ export function Bills() {
             </tbody>
           </table>
         </div>
+      </div>
+      <div ref={bottomRef} className="mt-4 flex justify-center">
+        <button
+          onClick={() => loadMore && setPage((prev) => prev + 1)}
+          disabled={!loadMore}
+          className={`flex gap-2 items-center px-4 py-2 ${loadMore ? "bg-green-600" : "opacity-50 cursor-not-allowed bg-gray-600"}  text-white rounded-lg hover:bg-green-700 transition-colors`}
+        >
+          <ListCollapse size={18} />
+          Load More
+        </button>
       </div>
       {deleteBill && (
         <DeleteConfirmationPopup

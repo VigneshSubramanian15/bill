@@ -145,6 +145,7 @@ export function BikeZoneBill({ companyInfo, billData }) {
         <table className="w-full mb-8 print:mb-5">
           <thead>
             <tr className="text-left">
+              <th className="py-2 font-semibold text-black"></th>
               <th className="py-2 font-semibold text-black">
                 Item Description
               </th>
@@ -167,7 +168,12 @@ export function BikeZoneBill({ companyInfo, billData }) {
           <tbody className="border-t border-b border-black">
             {computedItems.map((item, index) => (
               <tr key={index} className=" text-black text-sm ">
-                <td className="py-2 print:py-1">{item.itemName}</td>
+                <td
+                  style={{ width: "50px" }}
+                  className="py-2 print:py-1 text-center"
+                >
+                  <span className="font-semibold">{index + 1}</span>
+                </td>
                 <td className="py-2 print:py-1">{item.itemName}</td>
                 {item.metaData.map((meta, idx) => (
                   <td key={idx} className="py-2 print:py-1">
