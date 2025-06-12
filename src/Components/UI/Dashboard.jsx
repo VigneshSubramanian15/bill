@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { cn } from "../Util/utils";
 import Link from "next/link";
+import { useSelector } from "react-redux";
 
 const mockData = {
   stats: [
@@ -115,9 +116,9 @@ const StatusBadge = ({ status }) => {
 };
 
 export function Dashboard() {
+  const login = useSelector((state) => state?.login);
   useEffect(() => {
-    const storedToken = localStorage.getItem("authToken");
-    if (!storedToken) {
+    if (!login) {
       window.location.href = "/login";
     }
   }, []);

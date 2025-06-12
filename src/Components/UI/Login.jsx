@@ -4,12 +4,15 @@ import Link from "next/link";
 import { ApiRequest } from "@/Components/Util/apiRequest";
 import { encryptData } from "@/Components/Util/crypto";
 import { useRouter } from "next/router";
-
+import { useDispatch, useSelector } from "react-redux";
+import { setLoginData } from "@/store/slices/loginSlice";
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const dispatch = useDispatch();
+  const login = useSelector((state) => state?.login?.value?.login);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,12 +26,12 @@ export function Login() {
         userId: encryptedEmail,
         password: encryptedPassword,
       });
-
-      const encryptedToken = encryptData(
-        data.token,
-        process.env.NEXT_PUBLIC_ENCRYPTION_KEY,
-      );
-      localStorage.setItem("authToken", encryptedToken);
+      dispatch(setLoginData(data));
+      // const encryptedToken = encryptData(
+      //   data.token,
+      //   process.env.NEXT_PUBLIC_ENCRYPTION_KEY,
+      // );
+      // localStorage.setItem("authToken", encryptedToken);
       router.push("/");
       console.log("Login successful:", data);
     } catch (err) {

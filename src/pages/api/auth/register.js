@@ -74,6 +74,8 @@ export default async function handler(req, res) {
         userId: savedUser._id,
         companyId: savedCompany._id,
         access: savedUser.access,
+        companyName: savedCompany.name,
+        companyModules: savedCompany.modules,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" },
@@ -81,6 +83,10 @@ export default async function handler(req, res) {
 
     res.status(201).json({
       token,
+      companyName: savedCompany.name,
+      companyModules: savedCompany.modules,
+      access: savedUser.access,
+      userName: savedUser.name,
     });
   } catch (error) {
     console.log("Registration error:", error);

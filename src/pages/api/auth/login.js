@@ -1,4 +1,5 @@
 import dbConnect from "@/Components/Util/mongodb";
+import Company from "@/Components/Models/CompanySchema";
 import User from "@/Components/Models/UsersSchema";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -36,11 +37,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    // Fetch company details
+    const company = await Company.findById(user.company).select("name modules");
+    if (!company) {
+      return res.status(400).json({ message: "Company not found" });
+    }
+
     const token = jwt.sign(
       {
         userId: user._id,
         companyId: user.company,
         access: user.access,
+        companyName: company.name,
+        companyModules: company.modules,
       },
       process.env.JWT_SECRET,
       // { expiresIn: '24h' }
@@ -48,6 +57,10 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       token,
+      companyName: company.name,
+      companyModules: company.modules,
+      access: user.access,
+      userName: user.name,
     });
   } catch (error) {
     console.error("Login error:", error);

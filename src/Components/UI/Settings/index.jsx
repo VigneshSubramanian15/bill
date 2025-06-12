@@ -5,11 +5,12 @@ import User from "./Users";
 import Appearance from "./Appearance";
 import { cn } from "@/Components/Util/utils";
 import MetaField from "./MetaField";
+import Config from "./Config";
 
 const tabs = [
   { id: "company", label: "Company", icon: Building2 },
   { id: "users", label: "Users", icon: Users },
-  { id: "meta", label: "Meta Fields", icon: Database },
+  { id: "config", label: "Configuration", icon: Database },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
 
@@ -53,7 +54,7 @@ export function Settings() {
             setAccentColor={setAccentColor}
           />
         )}
-        {activeTab === "meta" && <MetaField />}
+        {activeTab === "config" && <Config />}
       </div>
     </div>
   );

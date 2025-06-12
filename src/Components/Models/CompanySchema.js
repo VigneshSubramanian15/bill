@@ -36,6 +36,16 @@ const CompanySchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    modules: {
+      billing: {
+        type: Boolean,
+        default: true,
+      },
+      HSN: {
+        type: Boolean,
+        default: true,
+      },
+    },
     billMetaField: [
       {
         name: String,
