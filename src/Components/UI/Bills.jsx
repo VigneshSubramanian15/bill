@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "./../Util/utils";
 import { useRouter } from "next/router";
-import { ApiRequest } from "../Util/apiRequest";
+import { useApiRequest } from "../Util/useApiRequest";
 
 const StatusBadge = ({ status }) => {
   const styles =
@@ -65,11 +65,12 @@ export function Bills() {
   const [page, setPage] = useState(1);
   const [loadMore, setLoadMore] = useState(true);
   const bottomRef = useRef(null);
+  const { apiRequest, loading, error: ApiError } = useApiRequest();
 
   const router = useRouter();
   const fetchBills = async () => {
     try {
-      const res = await ApiRequest("/api/bills?page=" + page, "GET");
+      const res = await apiRequest("/api/bills?page=" + page, "GET");
       if (!res.success) {
         throw new Error(res.message || "Failed to fetch bills");
       }

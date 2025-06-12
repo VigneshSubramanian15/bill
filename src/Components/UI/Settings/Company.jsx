@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Upload } from "lucide-react";
-import { ApiRequest } from "@/Components/Util/apiRequest";
+import { useApiRequest } from "@/Components/Util/useApiRequest";
 
 const STATIC_LOGO_URL = "https://via.placeholder.com/150"; // Static logo value
 
 const Company = () => {
   const [companyInfo, setCompanyInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { apiRequest } = useApiRequest();
 
   const handleLogoUpload = (e) => {
     const file = e.target.files?.[0];
@@ -17,7 +18,7 @@ const Company = () => {
 
   async function fetchCompanyDetails() {
     try {
-      const response = await ApiRequest("/api/company");
+      const response = await apiRequest("/api/company");
       console.log(response);
       setCompanyInfo({
         ...response.data,
@@ -51,7 +52,7 @@ const Company = () => {
     };
     try {
       setLoading(true);
-      await ApiRequest("/api/company", "PUT", formatted);
+      await apiRequest("/api/company", "PUT", formatted);
       await fetchCompanyDetails();
       setLoading(false);
     } catch (error) {

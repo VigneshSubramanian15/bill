@@ -9,12 +9,12 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import encryptedStorage from "./encryptedStorage";
 import rootReducer from "./rootReducer";
 
 const persistConfig = {
   key: "info",
-  storage,
+  storage: encryptedStorage,
   whitelist: ["counter", "login"],
 };
 

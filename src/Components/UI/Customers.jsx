@@ -12,9 +12,10 @@ import {
   Calendar,
 } from "lucide-react";
 import { cn } from "./../Util/utils";
-import { ApiRequest } from "../Util/apiRequest";
+import { useApiRequest } from "../Util/useApiRequest";
 
 const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
+  const { apiRequest, loading, error } = useApiRequest();
   const [formData, setFormData] = useState({
     name: customer.name,
     email: customer.email,
@@ -23,7 +24,7 @@ const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    ApiRequest("/api/customers/" + customer._id, "PUT", formData).then(() =>
+    apiRequest("/api/customers/" + customer._id, "PUT", formData).then(() =>
       refetchCustomers(),
     );
     onClose();
@@ -305,6 +306,7 @@ export function Customers() {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [deletingCustomer, setDeletingCustomer] = useState(null);
+  const { apiRequest, loading, error } = useApiRequest();
 
   const handleEditCustomer = (id, data) => {
     setCustomers((prevCustomers) =>
@@ -315,7 +317,7 @@ export function Customers() {
   };
 
   const handleDeleteCustomer = async (id) => {
-    const response = await ApiRequest(`${"/api/customers"}/${id}`, "DELETE");
+    const response = await apiRequest(`${"/api/customers"}/${id}`, "DELETE");
     if (response.success) {
       setCustomers((prev) => prev.filter((c) => c._id !== id));
     }
@@ -333,8 +335,10 @@ export function Customers() {
 
     return matchesSearch && matchesStatus;
   });
-  const FetchCustomers = () =>
-    ApiRequest("/api/customers").then((d) => setCustomers(d.data));
+  const FetchCustomers = async () => {
+    const data = await apiRequest("/api/customers");
+    setCustomers(data.data);
+  };
 
   useEffect(() => {
     FetchCustomers();

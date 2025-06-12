@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import Link from "next/link";
-import { ApiRequest } from "@/Components/Util/apiRequest";
+import { ApiRequest } from "@/Components/Util/useApiRequest";
 import { encryptData } from "@/Components/Util/crypto";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";

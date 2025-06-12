@@ -118,6 +118,8 @@ const StatusBadge = ({ status }) => {
 export function Dashboard() {
   const login = useSelector((state) => state?.login);
   useEffect(() => {
+    console.log("Login state:", login);
+
     if (!login) {
       window.location.href = "/login";
     }

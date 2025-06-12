@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { ApiRequest } from "../Util/apiRequest";
+import { useApiRequest } from "../Util/useApiRequest";
 import { BikeZoneBill } from "./Bill-Templates/bike-zone";
 
 const defaultCompanyInfo = {
@@ -17,28 +17,39 @@ export function PrintBill() {
   const [companyInfo, setCompanyInfo] = useState(defaultCompanyInfo);
   const [billData, setBillData] = useState(null);
   const [error, setError] = useState("");
+  const { apiRequest } = useApiRequest();
 
   useEffect(() => {
     if (router?.query?.id) {
-      ApiRequest(`/api/company`).then((res) => {
-        console.log({ res: res.data });
-        const { name, address, phoneNumber } = res.data;
-        setCompanyInfo({
-          name,
-          address: address[0],
-          city: address[1],
-          number: phoneNumber,
-        });
-      });
-      ApiRequest(`/api/bills/${router.query.id}`, "GET")
-        .then((res) => {
-          if (res.success) {
-            setBillData(res.data);
+      const fetchData = async () => {
+        try {
+          // Fetch company info
+          const companyRes = await apiRequest(`/api/company`);
+          console.log({ res: companyRes.data });
+          const { name, address, phoneNumber } = companyRes.data;
+          setCompanyInfo({
+            name,
+            address: address[0],
+            city: address[1],
+            number: phoneNumber,
+          });
+
+          // Fetch bill data
+          const billRes = await apiRequest(
+            `/api/bills/${router.query.id}`,
+            "GET",
+          );
+          if (billRes.success) {
+            setBillData(billRes.data);
           } else {
             setError("Failed to load bill data");
           }
-        })
-        .catch((err) => setError(err.message || "Failed to load bill data"));
+        } catch (err) {
+          setError(err.message || "Failed to load bill data");
+        }
+      };
+
+      fetchData();
     }
   }, [router?.query?.id]);
 

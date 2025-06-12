@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/router";
-import { ApiRequest } from "../../Util/apiRequest";
+import { useApiRequest } from "../../Util/useApiRequest";
 import BillMetsField from "./BillMetsField";
 import LineItemsTable from "./LineItemsTable";
 import Summary from "./Summary";
@@ -29,11 +29,12 @@ export function CreateEditBill() {
   const [discount, setDiscount] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const { apiRequest } = useApiRequest();
 
   useEffect(() => {
     if (isCreateMode) {
       const billNumberFromQuery = router.query.id;
-      ApiRequest(`/api/bills/${billNumberFromQuery}`)
+      apiRequest(`/api/bills/${billNumberFromQuery}`)
         .then((data) => {
           if (data.success) {
             const bill = data.data;
@@ -70,11 +71,11 @@ export function CreateEditBill() {
         })
         .catch(() => setError("Failed to load bill data"));
     } else {
-      ApiRequest("/api/bills/getBillNo").then((data) =>
+      apiRequest("/api/bills/getBillNo").then((data) =>
         setBillNumber(incrementIfInteger(data.data.billNumber)),
       );
     }
-    ApiRequest("/api/settings/metafields").then((data) => {
+    apiRequest("/api/settings/metafields").then((data) => {
       const order = {
         String: 1,
         Number: 2,
@@ -99,7 +100,7 @@ export function CreateEditBill() {
 
   useEffect(() => {
     if (customerInfo) {
-      ApiRequest(`/api/customers?search=${customerInfo}`).then((Customers) => {
+      apiRequest(`/api/customers?search=${customerInfo}`).then((Customers) => {
         setCustomerFiltered(Customers.data);
       });
     }
@@ -216,7 +217,7 @@ export function CreateEditBill() {
 
     if (!customerId) {
       setbillLoading(true);
-      const customer = await ApiRequest("/api/customers", "POST", {
+      const customer = await apiRequest("/api/customers", "POST", {
         name: customerName,
         email: customerEmail ? customerEmail : undefined,
         number: customerPhone,
@@ -282,9 +283,9 @@ export function CreateEditBill() {
     try {
       let billId = "";
       if (!isCreateMode) {
-        billId = await ApiRequest("/api/bills", "POST", billData);
+        billId = await apiRequest("/api/bills", "POST", billData);
       } else {
-        billId = await ApiRequest(
+        billId = await apiRequest(
           `/api/bills/${router?.query?.id}`,
           "PUT",
           billData,

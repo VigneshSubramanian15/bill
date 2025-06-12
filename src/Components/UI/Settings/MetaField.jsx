@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { cn } from "@/Components/Util/utils";
-import { ApiRequest } from "@/Components/Util/apiRequest";
+import { useApiRequest } from "@/Components/Util/useApiRequest";
 
 const AddMetaFieldModal = ({ onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -269,24 +269,25 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
 export default function MetaField() {
   const [showAddMetaField, setShowAddMetaField] = useState(false);
   const [metaFields, setMetaFields] = useState([]);
+  const { apiRequest } = useApiRequest();
 
-  const handleDeleteMetaField = (id, metaType) => {
-    ApiRequest("/api/settings/metafields", "DELETE", {
+  const handleDeleteMetaField = async (id, metaType) => {
+    await apiRequest("/api/settings/metafields", "DELETE", {
       metaType,
       _id: id,
-    }).then(() => fetchMetaFields());
+    });
+    fetchMetaFields();
   };
 
-  const handleAddMetaField = (newField) => {
+  const handleAddMetaField = async (newField) => {
     if (newField.metaType === "billMetaField") {
       delete newField.showInBill;
     } else {
       delete newField.addToTotal;
     }
-    ApiRequest("/api/settings/metafields", "POST", newField).then(
-      (res) => fetchMetaFields(),
-      setShowAddMetaField(false),
-    );
+    await apiRequest("/api/settings/metafields", "POST", newField);
+    fetchMetaFields();
+    setShowAddMetaField(false);
   };
 
   const getFieldTypeIcon = (type) => {
@@ -338,23 +339,22 @@ export default function MetaField() {
     );
   };
 
-  const fetchMetaFields = () => {
-    ApiRequest("/api/settings/metafields").then((res) => {
-      setMetaFields([
-        ...res.data.billMetaField.map((field) => ({
-          ...field,
-          entity: "Bill",
-        })),
-        ...res.data.customerMetaField.map((field) => ({
-          ...field,
-          entity: "Customer",
-        })),
-        ...res.data.lineItemMetaField.map((field) => ({
-          ...field,
-          entity: "Line Item",
-        })),
-      ]);
-    });
+  const fetchMetaFields = async () => {
+    const res = await apiRequest("/api/settings/metafields");
+    setMetaFields([
+      ...res.data.billMetaField.map((field) => ({
+        ...field,
+        entity: "Bill",
+      })),
+      ...res.data.customerMetaField.map((field) => ({
+        ...field,
+        entity: "Customer",
+      })),
+      ...res.data.lineItemMetaField.map((field) => ({
+        ...field,
+        entity: "Line Item",
+      })),
+    ]);
   };
   useEffect(() => {
     fetchMetaFields();
