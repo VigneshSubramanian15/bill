@@ -57,6 +57,14 @@ const BillSchema = new mongoose.Schema(
           type: Number,
           required: [true, "Item quantity is required"],
         },
+        hsnCode: {
+          type: String,
+          required: [true, "HSN/SAC code is required"],
+        },
+        taxRate: {
+          type: Number,
+          default: 0,
+        },
         metaData: [
           {
             name: {

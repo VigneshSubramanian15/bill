@@ -11,26 +11,37 @@ export default function Summary({
   grandTotal,
   metaFields,
   metaFieldValues,
+  isHSN = false,
+  HSNData,
 }) {
+  const calculateHSNTax = () => {
+    return HSNData.reduce((total, item) => {
+      return total + item.totalTax;
+    }, 0);
+  };
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-300 pt-6">
       <div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tax (%)
-          </label>
-          <input
-            type="number"
-            value={tax}
-            onChange={(e) => setTax(e.target.value.replace(/^0+/, "") || 0)}
-            style={{ maxWidth: 250 }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            placeholder="Tax (%)"
-            min="0"
-            max="100"
-            step="1"
-          />
-        </div>
+        {!isHSN ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tax (%)
+            </label>
+            <input
+              type="number"
+              value={tax}
+              onChange={(e) => setTax(e.target.value.replace(/^0+/, "") || 0)}
+              style={{ maxWidth: 250 }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              placeholder="Tax (%)"
+              min="0"
+              max="100"
+              step="1"
+            />
+          </div>
+        ) : (
+          ""
+        )}
         <div className="pt-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Discount (%)
@@ -60,9 +71,15 @@ export default function Summary({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Tax:</span>
-            <span className="text-gray-900 font-medium">
-              ₹{taxAmount.toFixed(2)}
-            </span>
+            {!isHSN ? (
+              <span className="text-gray-900 font-medium">
+                ₹{taxAmount.toFixed(2)}
+              </span>
+            ) : (
+              <span className="text-gray-900 font-medium">
+                {calculateHSNTax().toFixed(2)}
+              </span>
+            )}
           </div>
           {metaFields?.map((meta) => {
             const value = metaFieldValues[meta.name];

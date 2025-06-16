@@ -7,6 +7,7 @@ export default function LineItemsTable({
   handleLineItemChange,
   removeLineItem,
   addLineItem,
+  isHSN,
 }) {
   return (
     <div className="space-y-4">
@@ -28,10 +29,23 @@ export default function LineItemsTable({
                 Item
               </th>
               {MetaFields.lineItem?.map((meta) => (
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  key={`header-${meta.name}`}
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   {meta.label}
                 </th>
               ))}
+              {isHSN && (
+                <>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    HSN/SAC Code
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tax Percentage
+                  </th>
+                </>
+              )}
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Quantity
               </th>
@@ -63,7 +77,7 @@ export default function LineItemsTable({
                 </td>
                 {MetaFields.lineItem?.map((meta) => {
                   return (
-                    <td className="px-4 py-2">
+                    <td key={meta.name} className="px-4 py-2">
                       <input
                         type={meta.dataType === "Number" ? "number" : "text"}
                         placeholder={meta.label}
@@ -82,6 +96,38 @@ export default function LineItemsTable({
                     </td>
                   );
                 })}
+                {isHSN && (
+                  <>
+                    <td className="flex gap-2 px-4 py-2">
+                      <input
+                        type="text"
+                        value={item.hsnCode}
+                        onChange={(e) =>
+                          handleLineItemChange(index, "hsnCode", e.target.value)
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="HSN/SAC"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        value={item.taxRate}
+                        onChange={(e) =>
+                          handleLineItemChange(
+                            index,
+                            "taxRate",
+                            e.target.value,
+                            false,
+                            true,
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="Tax Rate (%)"
+                      />
+                    </td>
+                  </>
+                )}
                 <td className="px-4 py-2">
                   <input
                     type="number"

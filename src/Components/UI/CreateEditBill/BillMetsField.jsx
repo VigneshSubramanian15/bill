@@ -11,7 +11,7 @@ export default function BillMetsField({
       <div className="flex justify-center items-center flex-wrap">
         {MetaFields.bill?.map((meta) =>
           meta.dataType === "String" ? (
-            <div className="w-full md:w-1/2 px-3">
+            <div key={meta.name} className="w-full md:w-1/2 px-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {meta.label}
               </label>
@@ -29,7 +29,7 @@ export default function BillMetsField({
               />
             </div>
           ) : meta.dataType === "Number" ? (
-            <div className="w-full md:w-1/2 px-3">
+            <div key={meta.name} className="w-full md:w-1/2 px-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {meta.label}
               </label>
@@ -47,7 +47,7 @@ export default function BillMetsField({
               />
             </div>
           ) : (
-            <div className="w-1/2 mt-3 md:w-1/4 px-3">
+            <div key={meta.name} className="w-1/2 mt-3 md:w-1/4 px-3">
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"

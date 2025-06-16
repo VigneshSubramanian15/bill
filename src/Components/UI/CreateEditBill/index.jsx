@@ -5,6 +5,8 @@ import { useApiRequest } from "../../Util/useApiRequest";
 import BillMetsField from "./BillMetsField";
 import LineItemsTable from "./LineItemsTable";
 import Summary from "./Summary";
+import { useSelector } from "react-redux";
+import HSNCalculation from "./HSNCalculation";
 
 export function CreateEditBill() {
   const router = useRouter();
@@ -20,6 +22,7 @@ export function CreateEditBill() {
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [MetaFields, setMetaFields] = useState([]);
+  const [HSNData, setHSNData] = useState([]);
   const [MetaFieldVlues, setMetaFieldVlues] = useState([]);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [lineItems, setLineItems] = useState([
@@ -30,6 +33,8 @@ export function CreateEditBill() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const { apiRequest } = useApiRequest();
+  const login = useSelector((state) => state?.login);
+  const isHSN = login?.companyModules?.HSN || false;
 
   useEffect(() => {
     if (isCreateMode) {
@@ -51,6 +56,11 @@ export function CreateEditBill() {
                 name: item.itemName,
                 quantity: item.itemQty,
                 rate: item.itemPrice,
+                taxRate: item.taxRate || 0,
+                hsnCode: item.hsnCode || "",
+                metaData: Object.fromEntries(
+                  item.metaData.map((item) => [item.name, item.value]),
+                ),
                 total: item.itemQty * item.itemPrice,
               })),
             );
@@ -121,15 +131,24 @@ export function CreateEditBill() {
     setShowCustomerDropdown(false);
   };
 
-  const handleLineItemChange = (index, field, value, isMetaData) => {
-    console.log("handleLineItemChange", { index, field, value, isMetaData });
-    const newLineItems = [...lineItems];
+  const handleLineItemChange = (index, field, value, isMetaData, HSNTax) => {
+    let newLineItems = [...lineItems];
     if (isMetaData) {
       const updatedItem = {
         ...newLineItems[index],
         metaData: { ...newLineItems[index].metaData, [field]: value },
       };
       newLineItems[index] = updatedItem;
+    } else if (HSNTax) {
+      const updatedItem = { ...newLineItems[index], [field]: value };
+      newLineItems = newLineItems.map((item) => {
+        if (item.hsnCode === updatedItem.hsnCode) {
+          item.taxRate = value;
+          item.totalTax = item.total * (value / 100);
+          return item;
+        }
+        return item;
+      });
     } else {
       const updatedItem = { ...newLineItems[index], [field]: value };
       if (field === "quantity" || field === "rate") {
@@ -267,6 +286,8 @@ export function CreateEditBill() {
         itemName: item.name,
         itemQty: item.quantity,
         itemPrice: item.rate,
+        taxRate: item.taxRate,
+        hsnCode: item.hsnCode,
         metaData: Object.keys(item.metaData || {}).map((key) => ({
           name: key,
           value: item.metaData[key],
@@ -423,11 +444,23 @@ export function CreateEditBill() {
         <LineItemsTable
           lineItems={lineItems}
           MetaFields={MetaFields}
+          isHSN={isHSN}
           handleLineItemChange={handleLineItemChange}
           removeLineItem={removeLineItem}
           addLineItem={addLineItem}
         />
+        {isHSN ? (
+          <HSNCalculation
+            HSNData={HSNData}
+            lineItems={lineItems}
+            setHSNData={setHSNData}
+          />
+        ) : (
+          ""
+        )}
         <Summary
+          isHSN={isHSN}
+          HSNData={HSNData}
           subtotal={subtotal}
           tax={tax}
           setTax={setTax}
