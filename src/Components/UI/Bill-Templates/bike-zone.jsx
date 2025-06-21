@@ -1,36 +1,116 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Download, Printer, SquareCheckIcon, Square } from "lucide-react";
 import GetNumberToWords from "../../Util/numberToWords";
 import generateInvoicePdf from "./InvoiceGenerator";
+import { useSelector } from "react-redux";
 
-export function BikeZoneBill({ companyInfo, billData }) {
+export function DefaultBillTemplate({ companyInfo, billData }) {
   const divRef = useRef(null);
-
-  const computedItems = [];
-  const lineItemsMetaField = [];
-  billData.items.forEach((item, i) => {
-    if (i === 0)
-      item.metaData.forEach((meta) => lineItemsMetaField.push(meta.label));
-    computedItems.push({
-      ...item,
-      total: item.itemQty * item.itemPrice,
-    });
-  });
-  const subtotal = computedItems.reduce((sum, item) => sum + item.total, 0);
-  const taxAmount = (subtotal * (Number(billData.tax) || 0)) / 100;
-  const discountAmount = (subtotal * (Number(billData.discount) || 0)) / 100;
-  const metaCalculation = billData.metaData.reduce((acc, meta) => {
-    if (meta.addToTotal) {
-      const value = parseFloat(meta.value) || 0;
-      return acc + value;
-    }
-    return acc;
-  }, 0);
-  const grandTotal = subtotal + taxAmount + metaCalculation - discountAmount;
+  const [lineItems, setLineItems] = useState([]);
+  const [metaHeader, setMetaHeader] = useState([]);
+  const [grandTotal, setGrandTotal] = useState(0);
+  const [subtotal, setSubtotal] = useState(0);
+  const [taxAmount, setTaxAmount] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [metaCalculation, setMetaCalculation] = useState(0);
+  // HSN related state
+  const [HSNData, setHSNData] = useState([]);
+  const login = useSelector((state) => state?.login);
+  const isHSN = login?.companyModules?.HSN || false;
 
   const handlePrint = () => {
     window.print();
   };
+
+  const calculateHSN = () => {
+    console.log("Calculating HSN Data...");
+    let HSNCopy = [];
+
+    if (!lineItems || lineItems.length === 0) return;
+    lineItems.forEach((item) => {
+      if (item.hsnCode) {
+        const hsnItemIndex = HSNCopy.findIndex(
+          (hsnItem) => hsnItem.hsnCode === item.hsnCode,
+        );
+        if (hsnItemIndex === -1) {
+          HSNCopy.push({
+            hsnCode: item.hsnCode,
+            total: item.total,
+            tax: item.taxRate,
+            totalTax: item.total * (item.taxRate / 100),
+          });
+        } else {
+          HSNCopy[hsnItemIndex] = {
+            hsnCode: item.hsnCode,
+            total: HSNCopy[hsnItemIndex].total + item.total,
+            tax: item.taxRate,
+            totalTax:
+              (HSNCopy[hsnItemIndex].total + item.total) * (item.taxRate / 100),
+          };
+        }
+        console.log("HSN Data:", { HSNCopy });
+        setHSNData(HSNCopy);
+      }
+    });
+  };
+
+  const calculateHSNTax = () => {
+    if (!HSNData || HSNData.length === 0) return;
+    const taxAmount = HSNData.reduce((total, item) => {
+      return total + item.totalTax;
+    }, 0);
+    const calculatedTotal =
+      subtotal + taxAmount + metaCalculation - discountAmount;
+
+    setTaxAmount(taxAmount);
+    setGrandTotal(calculatedTotal);
+  };
+
+  useEffect(() => {
+    const calculatedLineItems = [];
+    const calculatedMetaHeader = [];
+    billData.items.forEach((item, i) => {
+      if (i === 0)
+        item.metaData.forEach((meta) => calculatedMetaHeader.push(meta.label));
+      calculatedLineItems.push({
+        ...item,
+        total: item.itemQty * item.itemPrice,
+      });
+    });
+    const subtotal = calculatedLineItems.reduce(
+      (sum, item) => sum + item.total,
+      0,
+    );
+    const taxAmount = (subtotal * (Number(billData.tax) || 0)) / 100;
+    const discountAmount = (subtotal * (Number(billData.discount) || 0)) / 100;
+    const metaCalculation = billData.metaData.reduce((acc, meta) => {
+      if (meta.addToTotal) {
+        const value = parseFloat(meta.value) || 0;
+        return acc + value;
+      }
+      return acc;
+    }, 0);
+    const calculatedTotal =
+      subtotal + taxAmount + metaCalculation - discountAmount;
+
+    setLineItems(calculatedLineItems);
+    setMetaHeader(calculatedMetaHeader);
+    setGrandTotal(calculatedTotal);
+    setSubtotal(subtotal);
+    setTaxAmount(taxAmount);
+    setDiscountAmount(discountAmount);
+    setMetaCalculation(metaCalculation);
+  }, []);
+
+  useEffect(() => {
+    isHSN && calculateHSN();
+  }, [lineItems]);
+
+  useEffect(() => {
+    if (isHSN && lineItems.length > 0) {
+      calculateHSNTax();
+    }
+  }, [HSNData]);
 
   return (
     <div className="min-h-screen bg-gray-50 print:bg-white">
@@ -149,11 +229,21 @@ export function BikeZoneBill({ companyInfo, billData }) {
               <th className="py-2 font-semibold text-black">
                 Item Description
               </th>
-              {lineItemsMetaField.map((meta, idx) => (
+              {metaHeader.map((meta, idx) => (
                 <th key={meta} className="py-2 font-semibold text-black">
                   {meta}
                 </th>
               ))}
+              {isHSN && (
+                <>
+                  <th className="py-2 font-semibold text-center text-black">
+                    HSN/SAC
+                  </th>
+                  <th className="py-2 font-semibold text-center text-black">
+                    Tax %
+                  </th>
+                </>
+              )}
               <th className="py-2 font-semibold text-center text-black">
                 Quantity
               </th>
@@ -166,7 +256,7 @@ export function BikeZoneBill({ companyInfo, billData }) {
             </tr>
           </thead>
           <tbody className="border-t border-b border-black">
-            {computedItems.map((item, index) => (
+            {lineItems.map((item, index) => (
               <tr key={index} className=" text-black text-sm ">
                 <td
                   style={{ width: "50px" }}
@@ -190,6 +280,16 @@ export function BikeZoneBill({ companyInfo, billData }) {
                     )}
                   </td>
                 ))}
+                {isHSN && (
+                  <>
+                    <td className="py-2 print:py-1 text-center">
+                      {item.hsnCode || "N/A"}
+                    </td>
+                    <td className="py-2 print:py-1 text-center">
+                      {item.taxRate || 0}%
+                    </td>
+                  </>
+                )}
                 <td className="py-2 print:py-1 text-center">{item.itemQty}</td>
                 <td className="py-2 print:py-1 text-center">
                   ₹{Number(item.itemPrice).toFixed(2)}
@@ -202,43 +302,103 @@ export function BikeZoneBill({ companyInfo, billData }) {
           </tbody>
         </table>
 
-        <div className="w-1/2 ml-auto space-y-1">
-          <div className="flex justify-between">
-            <span className="text-black">Subtotal:</span>
-            <span className="font-medium text-black">
-              ₹{subtotal.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-black">Tax ({billData.tax}%):</span>
-            <span className="font-medium text-black">
-              ₹{taxAmount.toFixed(2)}
-            </span>
-          </div>
-          {billData.metaData.map(
-            (meta) =>
-              meta.addToTotal && (
-                <div key={meta.name} className="flex justify-between">
-                  <span className="text-black">{meta.label}:</span>
-                  <span className="font-medium text-black">
-                    ₹{metaCalculation.toFixed(2)}
-                  </span>
-                </div>
-              ),
+        <div>
+          {isHSN && HSNData.length > 0 && (
+            <>
+              <h5 className="font-semibold text-black">HSN/SAC Calculation</h5>
+              <table className="min-w-full border-b border-black mb-4">
+                <thead className="border-b border-black">
+                  <tr>
+                    <th className="px-4 py-2 font-semibold text-black">Code</th>
+                    <th className="px-4 py-2 font-semibold text-black">
+                      Total
+                    </th>
+                    <th className="px-4 py-2 font-semibold text-black">SGST</th>
+                    <th className="px-4 py-2 font-semibold text-black">CGST</th>
+                    <th className="px-4 py-2 font-semibold text-black">
+                      Total Tax
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {HSNData.map((item) => (
+                    <tr key={item.hsnCode}>
+                      <td className="px-4 text-center text-sm py-1 text-black">
+                        {item.hsnCode}
+                      </td>
+                      <td className="px-4 text-center text-sm py-1 text-black">
+                        ₹{item.total.toFixed(2) || 0}
+                      </td>
+                      <td className="px-4 text-center text-sm py-1 text-black">
+                        <div className="flex justify-around">
+                          <span>{item.tax / 2 || 0}%</span>
+                          <span>₹{item.totalTax.toFixed(2) / 2 || 0}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 text-center text-sm py-1 text-black">
+                        <div>
+                          <div className="flex justify-around">
+                            <span>{item.tax / 2 || 0}%</span>
+                            <span>₹{item.totalTax.toFixed(2) / 2 || 0}</span>
+                          </div>
+                        </div>
+                      </td>{" "}
+                      <td className="px-4 text-center text-sm py-1 text-black">
+                        ₹{item.totalTax.toFixed(2) || 0}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
-          <div className="flex justify-between">
-            <span className="text-black">Discount ({billData.discount}%):</span>
-            <span className="font-medium text-black">
-              -₹{discountAmount.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex justify-between pt-2 text-black font-bold text-lg">
-            <span>Total:</span>
-            <span>₹{grandTotal.toFixed(2)}</span>
+        </div>
+
+        <div className="flex space-x-7 justify-between items-center mb-8 print:mb-5">
+          <div className="w-1/2 space-y-1"></div>
+          <div className="w-1/2 space-y-1">
+            <div className="flex justify-between">
+              <span className="text-black">Subtotal:</span>
+              <span className="font-medium text-black">
+                ₹{subtotal.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-black">
+                Tax{isHSN ? "" : ` ${billData.tax}%`}:
+              </span>
+              <span className="font-medium text-black">
+                ₹{taxAmount.toFixed(2)}
+              </span>
+            </div>
+            {billData.metaData.map(
+              (meta) =>
+                meta.addToTotal && (
+                  <div key={meta.name} className="flex justify-between">
+                    <span className="text-black">{meta.label}:</span>
+                    <span className="font-medium text-black">
+                      ₹{metaCalculation.toFixed(2)}
+                    </span>
+                  </div>
+                ),
+            )}
+            <div className="flex justify-between">
+              <span className="text-black">
+                Discount ({billData.discount}%):
+              </span>
+              <span className="font-medium text-black">
+                -₹{discountAmount.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between pt-2 text-black font-bold text-lg">
+              <span>Total:</span>
+              <span>₹{grandTotal.toFixed(2)}</span>
+            </div>
           </div>
         </div>
+
         <div className="mt-5 text-black">
-          Total amount in words -{" "}
+          Total Amount In Words -{" "}
           <span className="font-extrabold text-black">
             {GetNumberToWords(grandTotal.toFixed(0))}
           </span>

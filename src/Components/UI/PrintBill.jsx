@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useApiRequest } from "../Util/useApiRequest";
-import { BikeZoneBill } from "./Bill-Templates/bike-zone";
-
-const defaultCompanyInfo = {
-  name: "Bike Zone",
-  address: "Balaji Nagar",
-  city: "Trichy Tanjore Highways",
-  phone: "+91 98424 90088",
-  email: "billing@.com",
-  website: "www.company.com",
-};
+import { DefaultBillTemplate } from "./Bill-Templates/bike-zone";
 
 export function PrintBill() {
   const router = useRouter();
-  const [companyInfo, setCompanyInfo] = useState(defaultCompanyInfo);
+  const [companyInfo, setCompanyInfo] = useState({});
   const [billData, setBillData] = useState(null);
   const [error, setError] = useState("");
   const { apiRequest } = useApiRequest();
@@ -25,7 +16,6 @@ export function PrintBill() {
         try {
           // Fetch company info
           const companyRes = await apiRequest(`/api/company`);
-          console.log({ res: companyRes.data });
           const { name, address, phoneNumber } = companyRes.data;
           setCompanyInfo({
             name,
@@ -61,5 +51,5 @@ export function PrintBill() {
     return <div className="p-4">Loading bill data...</div>;
   }
 
-  return <BikeZoneBill companyInfo={companyInfo} billData={billData} />;
+  return <DefaultBillTemplate companyInfo={companyInfo} billData={billData} />;
 }

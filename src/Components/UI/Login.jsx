@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import Link from "next/link";
-import { ApiRequest } from "@/Components/Util/useApiRequest";
+import { useApiRequest } from "@/Components/Util/useApiRequest";
 import { encryptData } from "@/Components/Util/crypto";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,8 +11,15 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const login = useSelector((state) => state?.login);
   const dispatch = useDispatch();
-  const login = useSelector((state) => state?.login?.value?.login);
+  const { apiRequest } = useApiRequest();
+
+  useEffect(() => {
+    if (login) {
+      window.location.href = "/";
+    }
+  }, [login]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +29,7 @@ export function Login() {
       const encryptedEmail = encryptData(email);
       const encryptedPassword = encryptData(password);
 
-      const data = await ApiRequest("/api/auth/login", "POST", {
+      const data = await apiRequest("/api/auth/login", "POST", {
         userId: encryptedEmail,
         password: encryptedPassword,
       });

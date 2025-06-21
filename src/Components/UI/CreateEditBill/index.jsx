@@ -131,6 +131,12 @@ export function CreateEditBill() {
     setShowCustomerDropdown(false);
   };
 
+  const calculateHSNTax = () => {
+    return HSNData.reduce((total, item) => {
+      return total + item.totalTax;
+    }, 0);
+  };
+
   const handleLineItemChange = (index, field, value, isMetaData, HSNTax) => {
     let newLineItems = [...lineItems];
     if (isMetaData) {
@@ -183,7 +189,9 @@ export function CreateEditBill() {
   };
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
-  const taxAmount = (subtotal * (Number(tax) || 0)) / 100;
+  const taxAmount = isHSN
+    ? calculateHSNTax()
+    : (subtotal * (Number(tax) || 0)) / 100;
   const discountAmount = (subtotal * (Number(discount) || 0)) / 100;
   const metaFieldsToAdd = MetaFields?.bill?.filter((meta) => meta.addToTotal);
   const metaTotal = metaFieldsToAdd?.reduce((sum, meta) => {
