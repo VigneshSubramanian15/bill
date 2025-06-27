@@ -3,16 +3,15 @@ import Company from "@/Components/Models/CompanySchema";
 import Joi from "joi";
 import { ErrorResponse, getJWTTokenData } from "@/Components/Util/auth";
 
-const companyValidationSchema = Joi.object({
-  name: Joi.string().trim(),
-  address: Joi.array().items(Joi.string().trim().allow("")).optional(),
-  logo: Joi.string().trim().optional(),
-  email: Joi.string().trim().optional(),
-  website: Joi.string().trim().optional(),
-  phoneNumber: Joi.string().trim().optional(),
-  tagline: Joi.string().trim().optional(),
-  upiId: Joi.string().trim().optional().allow(""),
-  isActive: Joi.boolean().optional(),
+const headerFooterSchema = Joi.object({
+  billFooter: Joi.object({
+    type: Joi.string().valid("Text", "MarkDown", "HTML").required(),
+    value: Joi.string().allow("").required(),
+  }).optional(),
+  billHeader: Joi.object({
+    type: Joi.string().valid("Text", "MarkDown", "HTML").required(),
+    value: Joi.string().allow("").required(),
+  }).optional(),
 });
 
 export default async function handler(req, res) {
@@ -24,17 +23,8 @@ export default async function handler(req, res) {
     case "GET":
       try {
         const company = await Company.findById(companyId).select([
-          "-_id",
-          "address",
-          "email",
-          "logo",
-          "name",
-          "phone",
-          "tagline",
-          "website",
-          "phoneNumber",
-          "tagline",
-          "upiId",
+          "billFooter",
+          "billHeader",
         ]);
         if (!company) {
           return ErrorResponse(res, "Company not found", 404);
@@ -46,23 +36,22 @@ export default async function handler(req, res) {
       break;
     case "PUT":
       try {
-        const { error, value } = companyValidationSchema.validate(req.body);
+        const { error, value } = headerFooterSchema.validate(req.body);
         if (error) {
-          console.error("Validation error:", error);
           return ErrorResponse(
             res,
             error.details.map((d) => d.message),
             400,
           );
         }
+        const updateFields = {};
+        if (value.billFooter) updateFields.billFooter = value.billFooter;
+        if (value.billHeader) updateFields.billHeader = value.billHeader;
         const updatedCompany = await Company.findByIdAndUpdate(
           companyId,
-          value,
-          {
-            new: true,
-            runValidators: true,
-          },
-        );
+          { $set: updateFields },
+          { new: true, runValidators: true },
+        ).select(["billFooter", "billHeader"]);
         if (!updatedCompany) {
           return ErrorResponse(res, "Company not found", 404);
         }

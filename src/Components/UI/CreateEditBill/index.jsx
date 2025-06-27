@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/router";
 import { useApiRequest } from "../../Util/useApiRequest";
-import BillMetsField from "./BillMetsField";
+import BillMetaField from "./BillMetaField";
 import LineItemsTable from "./LineItemsTable";
 import Summary from "./Summary";
 import { useSelector } from "react-redux";
@@ -23,7 +23,8 @@ export function CreateEditBill() {
   const [customerAddress, setCustomerAddress] = useState("");
   const [MetaFields, setMetaFields] = useState([]);
   const [HSNData, setHSNData] = useState([]);
-  const [MetaFieldVlues, setMetaFieldVlues] = useState([]);
+  const [gstNumber, setGstNumber] = useState("");
+  const [MetaFieldValues, setMetaFieldValues] = useState([]);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [lineItems, setLineItems] = useState([
     { id: "1", name: "", quantity: 1, rate: "", total: 0 },
@@ -50,6 +51,7 @@ export function CreateEditBill() {
             setCustomerName(bill.customer.name || "");
             setCustomerEmail(bill.customer.email || "");
             setCustomerAddress(bill.customer.address || "");
+            setGstNumber(bill.customer.gstNumber || "");
             setLineItems(
               bill.items.map((item, index) => ({
                 id: String(index + 1),
@@ -74,7 +76,7 @@ export function CreateEditBill() {
                   [meta.name]: meta.value,
                 }),
             );
-            setMetaFieldVlues(metavalue);
+            setMetaFieldValues(metavalue);
           } else {
             setError("Failed to load bill data");
           }
@@ -195,7 +197,7 @@ export function CreateEditBill() {
   const discountAmount = (subtotal * (Number(discount) || 0)) / 100;
   const metaFieldsToAdd = MetaFields?.bill?.filter((meta) => meta.addToTotal);
   const metaTotal = metaFieldsToAdd?.reduce((sum, meta) => {
-    const value = MetaFieldVlues[meta.name];
+    const value = MetaFieldValues[meta.name];
     if (meta.dataType === "Number" && value) {
       return sum + Number(value);
     }
@@ -259,27 +261,27 @@ export function CreateEditBill() {
 
   const createBill = async (newCustomerId) => {
     const BillMetaData = [];
-    Object.keys(MetaFieldVlues).forEach((key) => {
+    Object.keys(MetaFieldValues).forEach((key) => {
       const metaInfo = MetaFields.bill.find((m) => m.name === key);
       if (!metaInfo) return [];
       return BillMetaData.push({
         ...metaInfo,
-        value: MetaFieldVlues[key],
+        value: MetaFieldValues[key],
         type: "bill",
       });
     });
     const customerMetaData = [];
-    Object.keys(MetaFieldVlues).forEach((key) => {
+    Object.keys(MetaFieldValues).forEach((key) => {
       const metaInfo = MetaFields.customer.find((m) => m.name === key);
       if (!metaInfo) return [];
       return customerMetaData.push({
         ...metaInfo,
-        value: MetaFieldVlues[key],
+        value: MetaFieldValues[key],
         type: "customer",
       });
     });
     const MetaData = [...BillMetaData, ...customerMetaData];
-    console.log({ MetaData, MetaFields, MetaFieldVlues });
+    console.log({ MetaData, MetaFields, MetaFieldValues });
     const billData = {
       customer: {
         id: customerId || newCustomerId,
@@ -287,6 +289,7 @@ export function CreateEditBill() {
         name: customerName,
         email: customerEmail ? customerEmail : undefined,
         address: customerAddress,
+        gstNumber: gstNumber,
       },
       billNumber: billNumber.toString(),
       date,
@@ -369,37 +372,58 @@ export function CreateEditBill() {
           </div>
         </div>
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Customer Phone Number
-          </label>
-          <input
-            type="number"
-            value={customerInfo || customerPhone}
-            onChange={(e) => {
-              setCustomerId("");
-              setCustomerInfo(e.target.value);
-              setCustomerPhone(e.target.value);
-              setShowCustomerDropdown(true);
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            placeholder="Enter customer phone number"
-          />
-          {showCustomerDropdown ? (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-              {customerFiltered?.map((customer) => (
-                <div
-                  key={customer._id}
-                  className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleCustomerSelect(customer)}
-                >
-                  <div className="font-medium">{customer.name}</div>
-                  <div className="text-sm text-gray-600">{customer.number}</div>
+          <div
+            style={{ marginTop: "20px" }}
+            className=" mt-5 grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Customer Phone Number
+              </label>
+              <input
+                type="number"
+                value={customerInfo || customerPhone}
+                onChange={(e) => {
+                  setCustomerId("");
+                  setCustomerInfo(e.target.value);
+                  setCustomerPhone(e.target.value);
+                  setShowCustomerDropdown(true);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Enter customer phone number"
+              />
+              {showCustomerDropdown ? (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                  {customerFiltered?.map((customer) => (
+                    <div
+                      key={customer._id}
+                      className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleCustomerSelect(customer)}
+                    >
+                      <div className="font-medium">{customer.name}</div>
+                      <div className="text-sm text-gray-600">
+                        {customer.number}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                ""
+              )}
             </div>
-          ) : (
-            ""
-          )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                GST Number
+              </label>
+              <input
+                type="text"
+                value={gstNumber}
+                onChange={(e) => setGstNumber(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Enter GST number"
+              />
+            </div>
+          </div>
           <div
             style={{ marginTop: "20px" }}
             className=" mt-5 grid grid-cols-1 md:grid-cols-2 gap-6"
@@ -443,10 +467,10 @@ export function CreateEditBill() {
           </div>
         </div>
 
-        <BillMetsField
+        <BillMetaField
           MetaFields={MetaFields}
-          MetaFieldVlues={MetaFieldVlues}
-          setMetaFieldVlues={setMetaFieldVlues}
+          MetaFieldValues={MetaFieldValues}
+          setMetaFieldValues={setMetaFieldValues}
         />
 
         <LineItemsTable
@@ -478,7 +502,7 @@ export function CreateEditBill() {
           discountAmount={discountAmount}
           grandTotal={grandTotal}
           metaFields={MetaFields.bill}
-          metaFieldValues={MetaFieldVlues}
+          metaFieldValues={MetaFieldValues}
         />
         <div className="flex justify-end">
           {!isCreateMode ? (

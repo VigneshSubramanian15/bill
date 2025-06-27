@@ -3,7 +3,6 @@ import { useState, useCallback } from "react";
 import { decryptData } from "./crypto";
 
 export function useApiRequest() {
-  console.log("useApiRequest called");
   const login = useSelector((state) => state?.login);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

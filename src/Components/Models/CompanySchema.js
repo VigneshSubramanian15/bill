@@ -88,6 +88,15 @@ const CompanySchema = new mongoose.Schema(
         displayInPrintBill: Boolean,
       },
     ],
+    billFooter: {
+      type: { type: String, enum: ["Text", "MarkDown", "HTML"] },
+      value: String,
+    },
+    billHeader: {
+      type: { type: String, enum: ["Text", "MarkDown", "HTML"] },
+      value: String,
+    },
+
     Tax: {
       GST: Boolean,
       SimpleTax: Boolean,

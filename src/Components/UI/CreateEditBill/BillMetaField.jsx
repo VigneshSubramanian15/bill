@@ -1,9 +1,9 @@
 import React from "react";
 
-export default function BillMetsField({
+export default function BillMetaField({
   MetaFields,
-  MetaFieldVlues,
-  setMetaFieldVlues,
+  MetaFieldValues,
+  setMetaFieldValues,
 }) {
   return (
     <>
@@ -11,15 +11,15 @@ export default function BillMetsField({
       <div className="flex justify-center items-center flex-wrap">
         {MetaFields.bill?.map((meta) =>
           meta.dataType === "String" ? (
-            <div key={meta.name} className="w-full md:w-1/2 px-3">
+            <div key={meta.name} className="w-full md:w-1/2 mt-5 px-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {meta.label}
               </label>
               <input
                 type="text"
-                value={MetaFieldVlues[meta.name]}
+                value={MetaFieldValues[meta.name]}
                 onChange={(e) =>
-                  setMetaFieldVlues((m) => ({
+                  setMetaFieldValues((m) => ({
                     ...m,
                     [meta.name]: e.target.value,
                   }))
@@ -29,15 +29,15 @@ export default function BillMetsField({
               />
             </div>
           ) : meta.dataType === "Number" ? (
-            <div key={meta.name} className="w-full md:w-1/2 px-3">
+            <div key={meta.name} className="w-full md:w-1/2 mt-5 px-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {meta.label}
               </label>
               <input
                 type="number"
-                value={MetaFieldVlues[meta.name]}
+                value={MetaFieldValues[meta.name]}
                 onChange={(e) =>
-                  setMetaFieldVlues((m) => ({
+                  setMetaFieldValues((m) => ({
                     ...m,
                     [meta.name]: e.target.value,
                   }))
@@ -51,9 +51,9 @@ export default function BillMetsField({
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={MetaFieldVlues[meta.name]}
+                  checked={MetaFieldValues[meta.name]}
                   onChange={(e) =>
-                    setMetaFieldVlues((m) => ({
+                    setMetaFieldValues((m) => ({
                       ...m,
                       [meta.name]: e.target.checked,
                     }))
@@ -61,7 +61,7 @@ export default function BillMetsField({
                   className="hidden peer"
                 />
                 <span>
-                  {MetaFieldVlues[meta.name] ? (
+                  {MetaFieldValues[meta.name] ? (
                     <CheckSquare2Icon size={20} />
                   ) : (
                     <Square size={20} />

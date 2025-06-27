@@ -3,6 +3,7 @@ import { Download, Printer, SquareCheckIcon, Square } from "lucide-react";
 import GetNumberToWords from "../../Util/numberToWords";
 import generateInvoicePdf from "./InvoiceGenerator";
 import { useSelector } from "react-redux";
+import { useApiRequest } from "@/Components/Util/useApiRequest";
 
 export function DefaultBillTemplate({ companyInfo, billData }) {
   const divRef = useRef(null);
@@ -17,6 +18,11 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
   const [HSNData, setHSNData] = useState([]);
   const login = useSelector((state) => state?.login);
   const isHSN = login?.companyModules?.HSN || false;
+  const [headerFooter, setHeaderFooter] = useState({
+    billHeader: { type: "HTML", value: "" },
+    billFooter: { type: "HTML", value: "" },
+  });
+  const { apiRequest } = useApiRequest();
 
   const handlePrint = () => {
     window.print();
@@ -100,6 +106,16 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
     setTaxAmount(taxAmount);
     setDiscountAmount(discountAmount);
     setMetaCalculation(metaCalculation);
+
+    // Set header and footer from billData if available
+    apiRequest("/api/company/headerFooter")
+      .then((res) => {
+        setHeaderFooter({
+          billHeader: res.data.billHeader || { type: "HTML", value: "" },
+          billFooter: res.data.billFooter || { type: "HTML", value: "" },
+        });
+      })
+      .catch(() => setError("Failed to load header/footer"));
   }, []);
 
   useEffect(() => {
@@ -111,6 +127,15 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
       calculateHSNTax();
     }
   }, [HSNData]);
+
+  const upiLink = companyInfo?.upiId
+    ? encodeURIComponent(
+        `upi://pay?pa=${companyInfo?.upiId}&pn=Vignesh&am=${grandTotal}&cu=INR`,
+      )
+    : "";
+  const qrUrl = upiLink
+    ? `https://quickchart.io/qr?text=${upiLink}&size=130`
+    : "";
 
   return (
     <div className="min-h-screen bg-gray-50 print:bg-white">
@@ -163,7 +188,7 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
                 {companyInfo.name}
               </h2>
               <p
-                className="text-black"
+                className="text-black text-sm"
                 dangerouslySetInnerHTML={{
                   __html: companyInfo.address.replace(/\\n/g, "<br>"),
                 }}
@@ -173,7 +198,7 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
           </div>
           <div className="text-right">
             {/* <h1 className="text-4xl text-black font-bold mb-4">INVOICE</h1> */}
-            <h1 className="text-4xl text-black font-bold mb-4">
+            <h1 className="text-xl text-black font-bold mb-4">
               Bill Number #{billData.billNumber}
             </h1>
             {/* <p className="text-black">Bill Number #{billData.billNumber}</p> */}
@@ -183,74 +208,93 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
           </div>
         </div>
 
-        <div className="mb-10 print:mb-3 flex justify-between items-center">
-          <div>
-            <h3 className="text-lg text-black font-semibold mb-2">Bill To:</h3>
-            <div className="border-l-4 border-black-500 pl-4">
-              <p className="font-semibold text-black">
-                {billData.customer.name}
-              </p>
-              <p className="text-black">
-                Customer Number: {billData.customer.number}
-              </p>
-              <p className="text-black">{billData.customer.address || ""}</p>
-            </div>
-          </div>
-          {billData?.metaData?.length && (
-            <div>
-              {billData.metaData.map(
-                (meta, idx) =>
-                  !meta.addToTotal &&
-                  (meta.dataType !== "Boolean" ? (
-                    <p key={idx} className="text-black">
-                      {meta.label}:{" "}
-                      <span className="font-semibold"> {meta.value} </span>
-                    </p>
-                  ) : (
-                    <p key={idx} className="text-black flex">
-                      {meta.label}:{" "}
-                      <span
-                        style={{ marginLeft: "7px" }}
-                        className="font-semibold block"
-                      >
-                        {meta.value ? <SquareCheckIcon /> : <Square />}
-                      </span>
-                    </p>
-                  )),
-              )}
-            </div>
-          )}
-        </div>
+        <table className="w-full border-collapse text-black font-black">
+          <tbody>
+            <tr>
+              <td colSpan="2" className="text-[20px] font-bold pb-2">
+                Bill To:
+              </td>
+            </tr>
+            <tr>
+              <td className="align-top pr-10">
+                <div className="border-l-4 border-black pl-3">
+                  <div className="">{billData.customer.name}</div>
+                  <div>
+                    <span className="font-semibold">GST Number: </span>
+                    <span className="font-medium">
+                      {billData.customer.gstNumber}
+                    </span>
+                  </div>
+                  <div className="font-medium">
+                    <span className="font-semibold">Address: </span>
+                    <span className="font-medium">
+                      {billData.customer.address}
+                    </span>
+                  </div>
+                  <div>
+                    {" "}
+                    <span className="font-semibold">Customer Number: </span>
+                    <span className="font-medium">
+                      {billData.customer.number}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td className="align-top">
+                {billData.metaData.map(
+                  (meta, idx) =>
+                    !meta.addToTotal &&
+                    (meta.dataType !== "Boolean" ? (
+                      <div>
+                        <span className="font-bold">{meta.label}:</span>{" "}
+                        <span className="font-medium">{meta.value}</span>
+                      </div>
+                    ) : (
+                      <p key={idx} className="text-black flex">
+                        <span className="font-semibold">{meta.label}: </span>
+                        <span style={{ marginLeft: "7px" }} className="block">
+                          {meta.value ? <SquareCheckIcon /> : <Square />}
+                        </span>
+                      </p>
+                    )),
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-        <table className="w-full mb-8 print:mb-5">
+        <table className="w-full mb-4 print:mb-5">
           <thead>
             <tr className="text-left">
               <th className="py-2 font-semibold text-black"></th>
-              <th className="py-2 font-semibold text-black">
+              <th className="py-2 text-sm font-semibold text-black">
                 Item Description
               </th>
               {metaHeader.map((meta, idx) => (
-                <th key={meta} className="py-2 font-semibold text-black">
+                <th
+                  key={meta}
+                  className="py-2 text-sm font-semibold text-black"
+                >
                   {meta}
                 </th>
               ))}
               {isHSN && (
                 <>
-                  <th className="py-2 font-semibold text-center text-black">
+                  <th className="py-2 font-semibold text-sm text-center text-black">
                     HSN/SAC
                   </th>
-                  <th className="py-2 font-semibold text-center text-black">
+                  <th className="py-2 font-semibold text-sm text-center text-black">
                     Tax %
                   </th>
                 </>
               )}
-              <th className="py-2 font-semibold text-center text-black">
+              <th className="py-2 font-semibold text-sm text-center text-black">
                 Quantity
               </th>
-              <th className="py-2 font-semibold text-center text-black">
+              <th className="py-2 font-semibold text-sm text-center text-black">
                 Rate
               </th>
-              <th className="py-2 font-semibold text-right text-black">
+              <th className="py-2 font-semibold text-sm text-right text-black">
                 Amount
               </th>
             </tr>
@@ -354,8 +398,14 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
           )}
         </div>
 
-        <div className="flex space-x-7 justify-between items-center mb-8 print:mb-5">
-          <div className="w-1/2 space-y-1"></div>
+        <div className="flex space-x-7 justify-between text-sm items-center mb-8 print:mb-5">
+          <div className="w-1/2 space-y-1">
+            <div className="w-full">
+              {qrUrl ? (
+                <img className="m-auto p-0" src={qrUrl} alt="UPI Payment QR" />
+              ) : null}
+            </div>
+          </div>
           <div className="w-1/2 space-y-1">
             <div className="flex justify-between">
               <span className="text-black">Subtotal:</span>
@@ -373,14 +423,15 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
             </div>
             {billData.metaData.map(
               (meta) =>
-                meta.addToTotal && (
+                (meta.addToTotal && parseInt(meta?.value) && (
                   <div key={meta.name} className="flex justify-between">
                     <span className="text-black">{meta.label}:</span>
                     <span className="font-medium text-black">
-                      ₹{metaCalculation.toFixed(2)}
+                      ₹{parseInt(meta?.value).toFixed(2) || 0}
                     </span>
                   </div>
-                ),
+                )) ||
+                "",
             )}
             <div className="flex justify-between">
               <span className="text-black">
@@ -403,19 +454,33 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
             {GetNumberToWords(grandTotal.toFixed(0))}
           </span>
         </div>
-        <div className="mt-5 print:mt-1.5 mr-10 text-black text-right">
-          Signature
-        </div>
-
-        <div className="mt-12 print:mt-5 pt-4 border-t text-center text-black">
-          <p className="font-medium">{companyInfo.name}</p>
-          <p>
-            {companyInfo.number}
-            {/* {companyInfo.phone} | {companyInfo.email} */}
-          </p>
-          {/* <p>{companyInfo.website}</p> */}
-        </div>
-        <div className="p-3 block print:hidden" />
+        {headerFooter.billFooter && headerFooter.billFooter.value.length ? (
+          headerFooter.billFooter.type === "HTML" ? (
+            <div
+              className="mt-5 text-black"
+              dangerouslySetInnerHTML={{
+                __html: headerFooter.billFooter.value,
+              }}
+            ></div>
+          ) : (
+            ""
+          )
+        ) : (
+          <footer>
+            <div className="mt-5 print:mt-1.5 mr-10 text-black text-right">
+              Signature
+            </div>
+            <div className="mt-12 print:mt-5 pt-4 border-t text-center text-black">
+              <p className="font-medium">{companyInfo.name}</p>
+              <p>
+                {companyInfo.number}
+                {/* {companyInfo.phone} | {companyInfo.email} */}
+              </p>
+              {/* <p>{companyInfo.website}</p> */}
+            </div>
+            <div className="p-3 block print:hidden" />
+          </footer>
+        )}
       </div>
     </div>
   );

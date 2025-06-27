@@ -2,7 +2,7 @@ import React from "react";
 
 const Appearance = ({ setAccentColor, accentColor }) => {
   return (
-    <div className="p-6 space-y-6">
+    <div className="rounded-xl shadow bg-white p-6 space-y-6">
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">
           Theme Customization

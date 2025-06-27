@@ -76,7 +76,33 @@ export default function LineItemsTable({
                   />
                 </td>
                 {MetaFields.lineItem?.map((meta) => {
-                  return (
+                  return meta.dataType === "Select" ? (
+                    <td key={meta.name} className="px-4 py-2">
+                      <select
+                        value={item?.metaData?.[meta.name] || ""}
+                        onChange={(e) =>
+                          handleLineItemChange(
+                            index,
+                            meta.name,
+                            e.target.value,
+                            true,
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 text-black rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        style={{ minWidth: 200 }}
+                      >
+                        <option value="" disabled>
+                          {meta.label}
+                        </option>
+                        {meta.options &&
+                          meta.options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                      </select>
+                    </td>
+                  ) : (
                     <td key={meta.name} className="px-4 py-2">
                       <input
                         type={meta.dataType === "Number" ? "number" : "text"}

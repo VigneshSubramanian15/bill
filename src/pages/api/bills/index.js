@@ -8,6 +8,7 @@ const billValidationSchema = Joi.object({
     id: Joi.string().required(),
     name: Joi.string().required(),
     number: Joi.string().required(),
+    gstNumber: Joi.string().optional().allow(""),
     email: Joi.string().email(),
     address: Joi.string().optional().allow(""),
   }).required(),

@@ -34,6 +34,10 @@ const BillSchema = new mongoose.Schema(
         type: String,
         required: [true, "Customer number is required"],
       },
+      gstNumber: {
+        type: String,
+        required: false, // GST number is optional
+      },
       email: {
         type: String,
       },

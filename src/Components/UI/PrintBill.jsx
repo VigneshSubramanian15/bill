@@ -16,12 +16,13 @@ export function PrintBill() {
         try {
           // Fetch company info
           const companyRes = await apiRequest(`/api/company`);
-          const { name, address, phoneNumber } = companyRes.data;
+          const { name, address, phoneNumber, upiId } = companyRes.data;
           setCompanyInfo({
             name,
             address: address[0],
             city: address[1],
             number: phoneNumber,
+            upiId,
           });
 
           // Fetch bill data

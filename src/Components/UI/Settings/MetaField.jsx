@@ -159,7 +159,8 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
           )}
 
           <div className="grid grid-cols-2 gap-4 mt-10">
-            {formData.metaType === "billMetaField" ? (
+            {formData.metaType === "billMetaField" &&
+            formData.dataType === "Number" ? (
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -181,26 +182,7 @@ const AddMetaFieldModal = ({ onClose, onSave }) => {
                 </label>
               </div>
             ) : (
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="showInBill"
-                  checked={formData.showInBill}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      showInBill: e.target.checked,
-                    })
-                  }
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="showInBill"
-                  className="ml-2 block text-sm text-gray-700"
-                >
-                  show In Bill
-                </label>
-              </div>
+              ""
             )}
 
             <div className="flex items-center">
@@ -362,7 +344,7 @@ export default function MetaField() {
 
   return (
     <>
-      <div className="p-6">
+      <div className="bg-white rounded-xl shadow p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h3 className="text-lg font-medium text-gray-900">Meta Fields</h3>

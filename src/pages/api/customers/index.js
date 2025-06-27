@@ -10,6 +10,7 @@ const customerValidationSchema = Joi.object({
   number: Joi.string()
     .required()
     .messages({ "string.empty": "Customer number is required" }),
+  gstNumber: Joi.string().alphanum().optional(),
   email: Joi.string().email(),
   address: Joi.string().optional(),
 });

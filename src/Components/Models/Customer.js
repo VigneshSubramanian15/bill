@@ -11,6 +11,10 @@ const CustomerSchema = new mongoose.Schema(
       type: String,
       required: [true, "Customer name is required"],
     },
+    gstNumber: {
+      type: String,
+      required: false,
+    },
     number: {
       type: String,
       required: [true, "Customer number is required"],

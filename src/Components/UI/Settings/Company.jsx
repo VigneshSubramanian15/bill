@@ -44,12 +44,20 @@ const Company = () => {
     setCompanyInfo((company) => ({ ...company, [name]: value }));
   };
 
-  const handleUpdateCompany = async () => {
+  const handleUpdateCompany = async (e) => {
+    e.preventDefault();
     const { city, country, state, zip, address, ...company } = companyInfo;
     const formatted = {
       ...company,
-      address: [address, city, state, country, zip],
+      address: [
+        address || "",
+        city || "",
+        state || "",
+        country || "",
+        zip || "",
+      ],
     };
+    console.log("Updating company info:", formatted);
     try {
       setLoading(true);
       await apiRequest("/api/company", "PUT", formatted);
@@ -64,7 +72,7 @@ const Company = () => {
   if (!companyInfo) return <p>Error fetching company data.</p>;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="rounded-xl shadow bg-white p-6 space-y-6">
       <div className="p-6 space-y-6">
         <div className="flex items-start space-x-6">
           <div>

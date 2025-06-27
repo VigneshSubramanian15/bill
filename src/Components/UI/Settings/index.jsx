@@ -45,7 +45,9 @@ export function Settings() {
         </nav>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm">
+      <div
+        className={`${activeTab === "users" ? "rounded-xl shadow bg-white" : ""}`}
+      >
         {activeTab === "company" && <Company />}
         {activeTab === "users" && <User />}
         {activeTab === "appearance" && (
