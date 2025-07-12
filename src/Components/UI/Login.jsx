@@ -127,7 +127,7 @@ export function Login() {
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-600">
-            Don't have an account?{" "}
+            {`Don't have an account? `}
             <Link
               href="/signup"
               className="text-green-600 hover:text-green-500 font-medium"
