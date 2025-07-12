@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Plus, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Plus, ArrowUpRight, ArrowDownRight, Calendar } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -9,37 +9,15 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { DateRangePicker } from "react-date-range";
 import { cn } from "../Util/utils";
 import Link from "next/link";
 import { useSelector } from "react-redux";
+import { useApiRequest } from "../Util/useApiRequest";
+import "react-date-range/dist/styles.css"; // main style file
+import "react-date-range/dist/theme/default.css"; // theme css file
 
 const mockData = {
-  stats: [
-    {
-      label: "Total Revenue",
-      value: "$24,560",
-      trend: "+12.5%",
-      positive: true,
-    },
-    {
-      label: "Outstanding Bills",
-      value: "$8,230",
-      trend: "+2.3%",
-      positive: false,
-    },
-    {
-      label: "Paid Bills",
-      value: "$16,330",
-      trend: "+8.3%",
-      positive: true,
-    },
-    {
-      label: "Overdue Bills",
-      value: "$3,460",
-      trend: "+5.4%",
-      positive: false,
-    },
-  ],
   recentActivity: [
     {
       id: 1024,
@@ -117,13 +95,79 @@ const StatusBadge = ({ status }) => {
 
 export function Dashboard() {
   const login = useSelector((state) => state?.login);
-  useEffect(() => {
-    console.log("Login state:", login);
+  const [cardInfo, setCardInfo] = useState({});
+  const [revenueData, setRevenueData] = useState([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+      endDate: new Date(),
+      key: "selection",
+    },
+  ]);
+  const { apiRequest, loading, error } = useApiRequest();
 
-    if (!login) {
-      window.location.href = "/login";
-    }
-  }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!login) {
+        window.location.href = "/login";
+        return;
+      }
+
+      try {
+        // Format dates for API
+        const startDate = dateRange[0].startDate.toISOString().split("T")[0];
+        const endDate = dateRange[0].endDate.toISOString().split("T")[0];
+
+        // Fetch total sales data
+        const totalSalesResponse = await apiRequest(
+          `/api/analytics/totalSales?startDate=${startDate}&endDate=${endDate}`,
+        );
+        console.log("Total Sales Response:", totalSalesResponse);
+        setCardInfo(totalSalesResponse.data);
+
+        // Fetch revenue by date data
+        const revenueResponse = await apiRequest(
+          `/api/analytics/revenueByDate?startDate=${startDate}&endDate=${endDate}`,
+        );
+        console.log("Revenue by Date Response:", revenueResponse);
+        setRevenueData(revenueResponse.data.revenueData || []);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchData();
+  }, [login, dateRange]); // Added dateRange to dependencies
+
+  // Close date picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDatePicker && !event.target.closest(".date-picker-container")) {
+        setShowDatePicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDatePicker]);
+
+  const handleDateRangeChange = (ranges) => {
+    setDateRange([ranges.selection]);
+  };
+
+  const handleDateRangeApply = () => {
+    setShowDatePicker(false);
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+    }).format(amount || 0);
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -134,20 +178,87 @@ export function Dashboard() {
             Welcome back! Here's what's happening today.
           </p>
         </div>
-        <Link
-          href={"/bill/create"}
-          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-        >
-          <Plus color="white" size={20} className="mr-2" />
-          Create New Bill
-        </Link>
+        <div className="flex items-center space-x-4">
+          {/* Date Range Picker */}
+          <div className="relative date-picker-container">
+            <button
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Calendar size={16} className="mr-2" />
+              {dateRange[0].startDate.toLocaleDateString()} -{" "}
+              {dateRange[0].endDate.toLocaleDateString()}
+            </button>
+
+            {showDatePicker && (
+              <div className="absolute right-0 top-12 z-50 bg-white border border-gray-200 rounded-lg shadow-lg">
+                <DateRangePicker
+                  ranges={dateRange}
+                  onChange={handleDateRangeChange}
+                  showSelectionPreview={true}
+                  moveRangeOnFirstSelection={false}
+                  months={1}
+                  direction="vertical"
+                  showDateDisplay={false}
+                  rangeColors={["#16a34a"]}
+                  editableDateInputs={true}
+                />
+                <div className="p-3 border-t border-gray-200 flex justify-end space-x-2">
+                  <button
+                    onClick={() => setShowDatePicker(false)}
+                    className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDateRangeApply}
+                    className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Link
+            href={"/bill/create"}
+            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Plus color="white" size={20} className="mr-2" />
+            Create New Bill
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {mockData.stats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StatCard
+          label="Total Revenue"
+          value={formatCurrency(cardInfo.totalSales)}
+          trend={loading ? "..." : "+12.5%"}
+          positive={true}
+        />
+        <StatCard
+          label="Total Bills"
+          value={cardInfo.totalBills || 0}
+          trend={loading ? "..." : "+8.3%"}
+          positive={true}
+        />
+        <StatCard
+          label="Average Bill Amount"
+          value={formatCurrency(cardInfo.averageBillAmount)}
+          trend={loading ? "..." : "+5.4%"}
+          positive={true}
+        />
+        {/* <StatCard
+          label="Date Range"
+          value={
+            cardInfo.dateRange?.isDefault ? "Last 30 Days" : "Custom Range"
+          }
+          trend={loading ? "..." : "Selected"}
+          positive={true}
+        /> */}
       </div>
 
       {/* Charts & Activity */}
@@ -155,19 +266,48 @@ export function Dashboard() {
         {/* Revenue Chart */}
         <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Revenue Trends
+            Revenue Trends by Date
           </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockData.revenueData}>
+              <BarChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                <XAxis
+                  dataKey="formattedDate"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  fontSize={12}
+                />
+                <YAxis
+                  tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  formatter={(value, name) => [
+                    `₹${value.toLocaleString("en-IN")}`,
+                    name === "revenue" ? "Revenue" : "Bill Count",
+                  ]}
+                  labelFormatter={(label) => `Date: ${label}`}
+                />
+                <Bar
+                  dataKey="revenue"
+                  fill="#16a34a"
+                  radius={[4, 4, 0, 0]}
+                  name="revenue"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
+          {revenueData.length === 0 && !loading && (
+            <div className="flex items-center justify-center h-80 text-gray-500">
+              No revenue data available for the selected date range
+            </div>
+          )}
+          {loading && (
+            <div className="flex items-center justify-center h-80 text-gray-500">
+              Loading revenue data...
+            </div>
+          )}
         </div>
 
         {/* Recent Activity */}
