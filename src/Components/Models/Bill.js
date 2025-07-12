@@ -63,7 +63,6 @@ const BillSchema = new mongoose.Schema(
         },
         hsnCode: {
           type: String,
-          required: [true, "HSN/SAC code is required"],
         },
         taxRate: {
           type: Number,
@@ -107,6 +106,10 @@ const BillSchema = new mongoose.Schema(
     tax: {
       type: Number,
       default: 0,
+    },
+    inclusiveOfTax: {
+      type: Boolean,
+      default: false,
     },
     discount: {
       type: Number,

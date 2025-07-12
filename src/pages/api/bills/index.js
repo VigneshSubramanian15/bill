@@ -14,6 +14,7 @@ const billValidationSchema = Joi.object({
   }).required(),
   billNumber: Joi.string().required(),
   date: Joi.date().required(),
+  inclusiveOfTax: Joi.boolean().default(false),
   items: Joi.array()
     .items(
       Joi.object({

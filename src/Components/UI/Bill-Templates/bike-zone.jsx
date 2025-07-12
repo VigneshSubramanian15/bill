@@ -28,6 +28,14 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
     window.print();
   };
 
+  const getValueExcludingTax = (value, tax) => {
+    if (billData.inclusiveOfTax) {
+      const taxMultiplier = 1 + tax / 100;
+      return (value / taxMultiplier).toFixed(2);
+    }
+    return value.toFixed(2);
+  };
+
   const calculateHSN = () => {
     console.log("Calculating HSN Data...");
     let HSNCopy = [];
@@ -65,6 +73,9 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
     const taxAmount = HSNData.reduce((total, item) => {
       return total + item.totalTax;
     }, 0);
+    const discountAmount =
+      ((subtotal + taxAmount) * (Number(billData.discount) || 0)) / 100;
+    setDiscountAmount(discountAmount);
     const calculatedTotal =
       subtotal + taxAmount + metaCalculation - discountAmount;
 
@@ -78,9 +89,12 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
     billData.items.forEach((item, i) => {
       if (i === 0)
         item.metaData.forEach((meta) => calculatedMetaHeader.push(meta.label));
+      const itemPrice = billData.inclusiveOfTax
+        ? getValueExcludingTax(Number(item.itemPrice), item.taxRate || 0)
+        : Number(item.itemPrice);
       calculatedLineItems.push({
         ...item,
-        total: item.itemQty * item.itemPrice,
+        total: item.itemQty * itemPrice,
       });
     });
     const subtotal = calculatedLineItems.reduce(
@@ -88,7 +102,8 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
       0,
     );
     const taxAmount = (subtotal * (Number(billData.tax) || 0)) / 100;
-    const discountAmount = (subtotal * (Number(billData.discount) || 0)) / 100;
+    const discountAmount =
+      ((subtotal + taxAmount) * (Number(billData.discount) || 0)) / 100;
     const metaCalculation = billData.metaData.reduce((acc, meta) => {
       if (meta.addToTotal) {
         const value = parseFloat(meta.value) || 0;
@@ -219,12 +234,16 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
               <td className="align-top pr-10">
                 <div className="border-l-4 border-black pl-3">
                   <div className="">{billData.customer.name}</div>
-                  <div>
-                    <span className="font-semibold">GST Number: </span>
-                    <span className="font-medium">
-                      {billData.customer.gstNumber}
-                    </span>
-                  </div>
+                  {billData.customer.gstNumber ? (
+                    <div>
+                      <span className="font-semibold">GST Number: </span>
+                      <span className="font-medium">
+                        {billData.customer.gstNumber}
+                      </span>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                   <div className="font-medium">
                     <span className="font-semibold">Address: </span>
                     <span className="font-medium">
@@ -283,16 +302,16 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
                   <th className="py-2 font-semibold text-sm text-center text-black">
                     HSN/SAC
                   </th>
-                  <th className="py-2 font-semibold text-sm text-center text-black">
+                  {/* <th className="py-2 font-semibold text-sm text-center text-black">
                     Tax %
-                  </th>
+                  </th> */}
                 </>
               )}
               <th className="py-2 font-semibold text-sm text-center text-black">
-                Quantity
+                Rate
               </th>
               <th className="py-2 font-semibold text-sm text-center text-black">
-                Rate
+                Quantity
               </th>
               <th className="py-2 font-semibold text-sm text-right text-black">
                 Amount
@@ -329,15 +348,19 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
                     <td className="py-2 print:py-1 text-center">
                       {item.hsnCode || "N/A"}
                     </td>
-                    <td className="py-2 print:py-1 text-center">
+                    {/* <td className="py-2 print:py-1 text-center">
                       {item.taxRate || 0}%
-                    </td>
+                    </td> */}
                   </>
                 )}
-                <td className="py-2 print:py-1 text-center">{item.itemQty}</td>
                 <td className="py-2 print:py-1 text-center">
-                  ₹{Number(item.itemPrice).toFixed(2)}
+                  ₹
+                  {getValueExcludingTax(
+                    Number(item.itemPrice),
+                    item.taxRate || 0,
+                  )}
                 </td>
+                <td className="py-2 print:py-1 text-center">{item.itemQty}</td>
                 <td className="py-2 print:py-1 text-right">
                   ₹{item.total.toFixed(2)}
                 </td>
@@ -433,14 +456,18 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
                 )) ||
                 "",
             )}
-            <div className="flex justify-between">
-              <span className="text-black">
-                Discount ({billData.discount}%):
-              </span>
-              <span className="font-medium text-black">
-                -₹{discountAmount.toFixed(2)}
-              </span>
-            </div>
+            {billData.discount ? (
+              <div className="flex justify-between">
+                <span className="text-black">
+                  Discount ({billData.discount}%):
+                </span>
+                <span className="font-medium text-black">
+                  -₹{discountAmount.toFixed(2)}
+                </span>
+              </div>
+            ) : (
+              ""
+            )}
             <div className="flex justify-between pt-2 text-black font-bold text-lg">
               <span>Total:</span>
               <span>₹{grandTotal.toFixed(2)}</span>

@@ -1,3 +1,4 @@
+import { SquareCheckIcon, SquareIcon } from "lucide-react";
 import React from "react";
 
 export default function Summary({
@@ -13,6 +14,8 @@ export default function Summary({
   metaFieldValues,
   isHSN = false,
   HSNData,
+  setSubTotalInclusiveTax,
+  subTotalInclusiveTax,
 }) {
   const calculateHSNTax = () => {
     return HSNData.reduce((total, item) => {
@@ -60,13 +63,33 @@ export default function Summary({
             step="1"
           />
         </div>
+        <div
+          onClick={() =>
+            setSubTotalInclusiveTax((inclusiveTax) => !inclusiveTax)
+          }
+          className="pt-4 flex items-center align-middle cursor-pointer gap-7"
+        >
+          <label className="block text-sm font-medium text-gray-700 mt-1">
+            Inclusive Of Tax
+          </label>
+          <span>
+            {subTotalInclusiveTax ? (
+              <SquareCheckIcon className="inline-block text-gray-500" />
+            ) : (
+              <SquareIcon className="inline-block text-gray-400" />
+            )}
+          </span>
+        </div>
       </div>
       <div>
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Subtotal:</span>
             <span className="text-gray-900 font-medium">
-              ₹{subtotal.toFixed(2)}
+              {subTotalInclusiveTax
+                ? `₹${(subtotal - (isHSN ? calculateHSNTax() : taxAmount)).toFixed(2)}`
+                : `₹${subtotal.toFixed(2)}`}
+              {/* ₹{subtotal.toFixed(2)} */}
             </span>
           </div>
           <div className="flex justify-between items-center">

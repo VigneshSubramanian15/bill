@@ -26,6 +26,7 @@ export function CreateEditBill() {
   const [gstNumber, setGstNumber] = useState("");
   const [MetaFieldValues, setMetaFieldValues] = useState([]);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [inclusiveTax, setInclusiveTax] = useState(false);
   const [lineItems, setLineItems] = useState([
     { id: "1", name: "", quantity: 1, rate: "", total: 0 },
   ]);
@@ -66,6 +67,7 @@ export function CreateEditBill() {
                 total: item.itemQty * item.itemPrice,
               })),
             );
+            setInclusiveTax(bill.inclusiveOfTax);
             setTax(bill.tax);
             setDiscount(bill.discount);
             let metavalue = {};
@@ -194,7 +196,9 @@ export function CreateEditBill() {
   const taxAmount = isHSN
     ? calculateHSNTax()
     : (subtotal * (Number(tax) || 0)) / 100;
-  const discountAmount = (subtotal * (Number(discount) || 0)) / 100;
+  const discountAmount =
+    ((subtotal + (!inclusiveTax ? taxAmount : 0)) * (Number(discount) || 0)) /
+    100;
   const metaFieldsToAdd = MetaFields?.bill?.filter((meta) => meta.addToTotal);
   const metaTotal = metaFieldsToAdd?.reduce((sum, meta) => {
     const value = MetaFieldValues[meta.name];
@@ -203,7 +207,9 @@ export function CreateEditBill() {
     }
     return sum;
   }, 0);
-  const grandTotal = subtotal + taxAmount + metaTotal - discountAmount;
+  const grandTotal = !inclusiveTax
+    ? subtotal + taxAmount + metaTotal - discountAmount
+    : subtotal + metaTotal - discountAmount;
 
   const validateForm = () => {
     if (!customerName || !customerPhone) {
@@ -293,6 +299,7 @@ export function CreateEditBill() {
       },
       billNumber: billNumber.toString(),
       date,
+      inclusiveOfTax: inclusiveTax,
       items: lineItems.map((item) => ({
         itemName: item.name,
         itemQty: item.quantity,
@@ -503,6 +510,8 @@ export function CreateEditBill() {
           grandTotal={grandTotal}
           metaFields={MetaFields.bill}
           metaFieldValues={MetaFieldValues}
+          setSubTotalInclusiveTax={setInclusiveTax}
+          subTotalInclusiveTax={inclusiveTax}
         />
         <div className="flex justify-end">
           {!isCreateMode ? (
