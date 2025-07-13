@@ -175,13 +175,13 @@ export function DefaultBillTemplate({ companyInfo, billData }) {
               <Download size={20} className="mr-2" />
               Download PDF
             </button>
-            {/* <button
+            <button
               onClick={() => generateInvoicePdf(companyInfo, billData, true)}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               <Download size={20} className="mr-2" />
               Whatsapp
-            </button> */}
+            </button>
             <button
               onClick={() => router.push(`/bill/${billData._id}/edit `)}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
