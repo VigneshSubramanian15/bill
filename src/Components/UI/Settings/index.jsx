@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Building2, Users, Palette, Database } from "lucide-react";
 import Company from "./Company";
 import User from "./Users";
@@ -6,17 +6,25 @@ import Appearance from "./Appearance";
 import { cn } from "@/Components/Util/utils";
 import MetaField from "./MetaField";
 import Config from "./Config";
+import { useSelector } from "react-redux";
 
-const tabs = [
+const defaultTabs = [
   { id: "company", label: "Company", icon: Building2 },
-  { id: "users", label: "Users", icon: Users },
   { id: "config", label: "Configuration", icon: Database },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
-
 export function Settings() {
   const [activeTab, setActiveTab] = useState("company");
   const [accentColor, setAccentColor] = useState("#16a34a");
+  const [tabs, setTabs] = useState(defaultTabs);
+  const access = useSelector((state) => state.login.access);
+
+  useEffect(() => {
+    if (access) {
+      access.includes("admin") &&
+        setTabs([...defaultTabs, { id: "users", label: "Users", icon: Users }]);
+    }
+  }, [access]);
 
   return (
     <div className="space-y-6">
