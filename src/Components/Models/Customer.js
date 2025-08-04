@@ -25,6 +25,10 @@ const CustomerSchema = new mongoose.Schema(
     address: {
       type: String,
     },
+    metaData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
   },
   { timestamps: true },
 );

@@ -13,6 +13,7 @@ const customerValidationSchema = Joi.object({
   gstNumber: Joi.string().alphanum().optional(),
   email: Joi.string().email(),
   address: Joi.string().optional(),
+  metaData: Joi.object().optional(),
 });
 
 export default async function handler(req, res) {

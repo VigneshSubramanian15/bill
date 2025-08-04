@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Plus,
   Search,
@@ -14,27 +14,191 @@ import {
 import { cn } from "./../Util/utils";
 import { useApiRequest } from "../Util/useApiRequest";
 
-const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
+const CustomerAddPopup = ({ onClose, refetchCustomers }) => {
   const { apiRequest, loading, error } = useApiRequest();
   const [formData, setFormData] = useState({
-    name: customer.name,
-    email: customer.email,
-    number: customer.number,
+    name: "",
+    email: "",
+    number: "",
   });
+  const [metaFields, setMetaFields] = useState([]);
+  const [metaFieldData, setMetaFieldData] = useState({});
+
+  useEffect(() => {
+    const fetchMetaFields = async () => {
+      try {
+        const response = await apiRequest("/api/settings/metafields", "GET");
+        if (response.success && response.data.customerMetaField) {
+          setMetaFields(response.data.customerMetaField);
+          // Initialize metaFieldData with default values
+          const initialData = {};
+          response.data.customerMetaField.forEach((field) => {
+            switch (field.dataType) {
+              case "Boolean":
+                initialData[field.name] = false;
+                break;
+              case "Number":
+                initialData[field.name] = "";
+                break;
+              case "MultiSelect":
+                initialData[field.name] = [];
+                break;
+              default:
+                initialData[field.name] = "";
+            }
+          });
+          setMetaFieldData(initialData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch metafields:", error);
+      }
+    };
+    fetchMetaFields();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    apiRequest("/api/customers/" + customer._id, "PUT", formData).then(() =>
+    const submitData = {
+      ...formData,
+      metaData: metaFieldData,
+    };
+    apiRequest("/api/customers", "POST", submitData).then(() =>
       refetchCustomers(),
     );
     onClose();
   };
 
+  const handleMetaFieldChange = (fieldName, value, dataType) => {
+    setMetaFieldData((prev) => ({
+      ...prev,
+      [fieldName]: dataType === "MultiSelect" ? value : value,
+    }));
+  };
+
+  const renderMetaField = (field) => {
+    const { name, label, dataType, options, isRequired } = field;
+
+    switch (dataType) {
+      case "String":
+        return (
+          <div key={field._id}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label} {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <input
+              type="text"
+              value={metaFieldData[name] || ""}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                handleMetaFieldChange(name, e.target.value, dataType)
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required={isRequired}
+            />
+          </div>
+        );
+
+      case "Number":
+        return (
+          <div key={field._id}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label} {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <input
+              type="number"
+              value={metaFieldData[name] || ""}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                handleMetaFieldChange(name, e.target.value, dataType)
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required={isRequired}
+            />
+          </div>
+        );
+
+      case "Boolean":
+        return (
+          <div key={field._id}>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={metaFieldData[name] || false}
+                onChange={(e) =>
+                  handleMetaFieldChange(name, e.target.checked, dataType)
+                }
+                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                {label} {isRequired && <span className="text-red-500">*</span>}
+              </span>
+            </label>
+          </div>
+        );
+
+      case "Select":
+        return (
+          <div key={field._id}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label} {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <select
+              value={metaFieldData[name] || ""}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                handleMetaFieldChange(name, e.target.value, dataType)
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required={isRequired}
+            >
+              <option value="">Select {label}</option>
+              {options.map((option, index) => (
+                <option key={index} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+
+      case "MultiSelect":
+        return (
+          <div key={field._id}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label} {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <div className="space-y-2 max-h-24 overflow-y-auto border border-gray-300 rounded-lg p-2">
+              {options.map((option, index) => (
+                <label key={index} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={(metaFieldData[name] || []).includes(option)}
+                    onChange={(e) => {
+                      const currentValues = metaFieldData[name] || [];
+                      const newValues = e.target.checked
+                        ? [...currentValues, option]
+                        : currentValues.filter((v) => v !== option);
+                      handleMetaFieldChange(name, newValues, dataType);
+                    }}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-700">{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-[#0000008f] bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl w-full max-w-md">
         <div className="px-6 py-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Edit Customer</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Add Customer</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -43,7 +207,10 @@ const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-4 max-h-96 overflow-y-auto"
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Name
@@ -100,6 +267,294 @@ const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
               required
             />
           </div>
+
+          {/* Dynamic Meta Fields */}
+          {metaFields.map((field) => renderMetaField(field))}
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Add Customer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const CustomerEditPopup = ({ customer, onClose, onSave, refetchCustomers }) => {
+  const { apiRequest, loading, error } = useApiRequest();
+  const [formData, setFormData] = useState({
+    name: customer.name,
+    email: customer.email,
+    number: customer.number,
+  });
+  const [metaFields, setMetaFields] = useState([]);
+  const [metaFieldData, setMetaFieldData] = useState({});
+
+  useEffect(() => {
+    const fetchMetaFields = async () => {
+      try {
+        const response = await apiRequest("/api/settings/metafields", "GET");
+        if (response.success && response.data.customerMetaField) {
+          setMetaFields(response.data.customerMetaField);
+          // Initialize metaFieldData with existing customer data or default values
+          const initialData = {};
+          response.data.customerMetaField.forEach((field) => {
+            if (
+              customer.metaFields &&
+              customer.metaFields[field.name] !== undefined
+            ) {
+              initialData[field.name] = customer.metaFields[field.name];
+            } else {
+              switch (field.dataType) {
+                case "Boolean":
+                  initialData[field.name] = false;
+                  break;
+                case "Number":
+                  initialData[field.name] = "";
+                  break;
+                case "MultiSelect":
+                  initialData[field.name] = [];
+                  break;
+                default:
+                  initialData[field.name] = "";
+              }
+            }
+          });
+          setMetaFieldData(initialData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch metafields:", error);
+      }
+    };
+    fetchMetaFields();
+  }, [customer]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const submitData = {
+      ...formData,
+      metaFields: metaFieldData,
+    };
+    apiRequest("/api/customers/" + customer._id, "PUT", submitData).then(() =>
+      refetchCustomers(),
+    );
+    onClose();
+  };
+
+  const handleMetaFieldChange = (fieldName, value, dataType) => {
+    setMetaFieldData((prev) => ({
+      ...prev,
+      [fieldName]: dataType === "MultiSelect" ? value : value,
+    }));
+  };
+
+  const renderMetaField = (field) => {
+    const { name, label, dataType, options, isRequired } = field;
+
+    switch (dataType) {
+      case "String":
+        return (
+          <div key={field._id}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label} {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <input
+              type="text"
+              value={metaFieldData[name] || ""}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                handleMetaFieldChange(name, e.target.value, dataType)
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required={isRequired}
+            />
+          </div>
+        );
+
+      case "Number":
+        return (
+          <div key={field._id}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label} {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <input
+              type="number"
+              value={metaFieldData[name] || ""}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                handleMetaFieldChange(name, e.target.value, dataType)
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required={isRequired}
+            />
+          </div>
+        );
+
+      case "Boolean":
+        return (
+          <div key={field._id}>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={metaFieldData[name] || false}
+                onChange={(e) =>
+                  handleMetaFieldChange(name, e.target.checked, dataType)
+                }
+                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                {label} {isRequired && <span className="text-red-500">*</span>}
+              </span>
+            </label>
+          </div>
+        );
+
+      case "Select":
+        return (
+          <div key={field._id}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label} {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <select
+              value={metaFieldData[name] || ""}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                handleMetaFieldChange(name, e.target.value, dataType)
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required={isRequired}
+            >
+              <option value="">Select {label}</option>
+              {options.map((option, index) => (
+                <option key={index} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+
+      case "MultiSelect":
+        return (
+          <div key={field._id}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {label} {isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <div className="space-y-2 max-h-24 overflow-y-auto border border-gray-300 rounded-lg p-2">
+              {options.map((option, index) => (
+                <label key={index} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={(metaFieldData[name] || []).includes(option)}
+                    onChange={(e) => {
+                      const currentValues = metaFieldData[name] || [];
+                      const newValues = e.target.checked
+                        ? [...currentValues, option]
+                        : currentValues.filter((v) => v !== option);
+                      handleMetaFieldChange(name, newValues, dataType);
+                    }}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-700">{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="bg-white rounded-xl w-full max-w-md">
+        <div className="px-6 py-4 border-b flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900">Edit Customer</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            ×
+          </button>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-4 max-h-96 overflow-y-auto"
+        >
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Name
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  name: e.target.value,
+                })
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  email: e.target.value,
+                })
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              value={formData.number}
+              style={{ color: "black" }}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  number: e.target.value,
+                })
+              }
+              className="w-full text-black px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          {/* Dynamic Meta Fields */}
+          {metaFields.map((field) => renderMetaField(field))}
 
           <div className="flex justify-end space-x-3 pt-4">
             <button
@@ -304,9 +759,13 @@ export function Customers() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [addingCustomer, setAddingCustomer] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [deletingCustomer, setDeletingCustomer] = useState(null);
+  const [page, setPage] = useState(1);
   const { apiRequest, loading, error } = useApiRequest();
+  const [loadMore, setLoadMore] = useState(true);
+  const bottomRef = useRef(null);
 
   const handleEditCustomer = (id, data) => {
     setCustomers((prevCustomers) =>
@@ -326,9 +785,9 @@ export function Customers() {
 
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch =
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.id.toLowerCase().includes(searchTerm.toLowerCase());
+      customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.id?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" || customer.status === statusFilter;
@@ -336,13 +795,26 @@ export function Customers() {
     return matchesSearch && matchesStatus;
   });
   const FetchCustomers = async () => {
-    const data = await apiRequest("/api/customers");
-    setCustomers(data.data);
+    const data = await apiRequest("/api/customers?page=" + page, "GET");
+    if (!data.success) {
+      throw new Error(data.message || "Failed to fetch customers");
+    }
+    if (data.data.length < 10) setLoadMore(false);
+
+    if (page === 1) {
+      setCustomers(data.data);
+    } else {
+      setCustomers((prevCustomers) => [...prevCustomers, ...data.data]);
+    }
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+    // setError("");
   };
 
   useEffect(() => {
     FetchCustomers();
-  }, []);
+  }, [page]);
 
   return (
     <div className="space-y-6">
@@ -351,7 +823,10 @@ export function Customers() {
           <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
           <p className="text-gray-600">Manage your customer relationships</p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+        <button
+          onClick={() => setAddingCustomer(true)}
+          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
           <Plus color="white" size={20} className="mr-2" />
           Add Customer
         </button>
@@ -469,12 +944,34 @@ export function Customers() {
             </tbody>
           </table>
         </div>
+        {loading && (
+          <div className="text-center py-4">
+            <span className="text-gray-500">Loading...</span>
+          </div>
+        )}
+        {loadMore && (
+          <div ref={bottomRef} className="text-center py-4">
+            <button
+              onClick={() => setPage((prevPage) => prevPage + 1)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Load More
+            </button>
+          </div>
+        )}
       </div>
 
       {selectedCustomer && (
         <CustomerDetails
           customer={selectedCustomer}
           onClose={() => setSelectedCustomer(null)}
+        />
+      )}
+
+      {addingCustomer && (
+        <CustomerAddPopup
+          refetchCustomers={FetchCustomers}
+          onClose={() => setAddingCustomer(false)}
         />
       )}
 
