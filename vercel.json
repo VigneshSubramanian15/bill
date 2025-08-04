@@ -1,6 +1,6 @@
 {
     "functions": {
-        "api/screenshot.js": {
+        "src/pages/api/screenshot.js": {
             "memory": 1024,
             "maxDuration": 10
         }
