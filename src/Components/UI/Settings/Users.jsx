@@ -319,8 +319,8 @@ const Users = () => {
           </div>
           <div className="p-6">
             <p className="text-gray-700 mb-4">
-              Are you sure you want to delete user "{user?.name}"? This action
-              will deactivate the user account.
+              Are you sure you want to delete user &quot;{user?.name}&quot;?
+              This action will deactivate the user account.
             </p>
             <div className="flex justify-end space-x-3">
               <button
