@@ -42,6 +42,9 @@ export default async function handler(req, res) {
     if (!company) {
       return res.status(400).json({ message: "Company not found" });
     }
+    if (!company.expiresAt || new Date() > company.expiresAt) {
+      return res.status(400).json({ message: "Company expired" });
+    }
 
     const token = jwt.sign(
       {

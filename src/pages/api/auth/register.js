@@ -51,6 +51,7 @@ export default async function handler(req, res) {
       phoneNumber,
       upiId,
       isActive: true,
+      expiresAt: new Date(new Date().setDate(new Date().getDate() + 365)), // Set expiry date to 365 days from now
     });
     const savedCompany = await newCompany.save();
     console.log("Company created:", savedCompany);

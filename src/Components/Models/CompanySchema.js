@@ -11,6 +11,9 @@ const CompanySchema = new mongoose.Schema(
       type: [String],
       trim: true,
     },
+    expiresAt: {
+      type: Date,
+    },
     email: {
       type: String,
       trim: true,
