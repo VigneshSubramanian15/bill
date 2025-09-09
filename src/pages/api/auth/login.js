@@ -27,7 +27,6 @@ export default async function handler(req, res) {
       $or: [{ email: userId }, { phoneNumber: userId }],
       isActive: true,
     });
-    console.log(user);
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -38,11 +37,13 @@ export default async function handler(req, res) {
     }
 
     // Fetch company details
-    const company = await Company.findById(user.company).select("name modules");
+    const company = await Company.findById(user.company).select(
+      "name modules expiresAt",
+    );
     if (!company) {
       return res.status(400).json({ message: "Company not found" });
     }
-    if (!company.expiresAt || new Date() > company.expiresAt) {
+    if (!company.expiresAt || new Date() > new Date(company.expiresAt)) {
       return res.status(400).json({ message: "Company expired" });
     }
 
